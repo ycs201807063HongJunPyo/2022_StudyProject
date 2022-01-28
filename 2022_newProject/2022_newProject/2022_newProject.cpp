@@ -1,4 +1,4 @@
-﻿// 2022_newProject.cpp : 애플리케이션에 대한 진입점을 정의합니다.
+// 2022_newProject.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
 
 #include "framework.h"
@@ -492,9 +492,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
+                    hdc = GetDC(hWnd);
                     flagCritical = 0;
                     flagCritical = CriticalHit(2);
                     AttackFastSummary(hWnd);
+                    HitByCharater(hWnd, hdc);
+                    ReleaseDC(hWnd, hdc);
                 }
                 GameUI(hWnd);
             }
@@ -508,9 +511,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
+                    hdc = GetDC(hWnd);
                     flagCritical = 0;
                     flagCritical = CriticalHit(2);
                     AttackFastSummary(hWnd);
+                    HitByCharater(hWnd, hdc);
+                    ReleaseDC(hWnd, hdc);
                 }
                 GameUI(hWnd);
             }
@@ -527,9 +533,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
+                    hdc = GetDC(hWnd);
                     flagCritical = 0;
                     flagCritical = CriticalHit(2);
                     AttackFastSummary(hWnd);
+                    HitByCharater(hWnd, hdc);
+                    ReleaseDC(hWnd, hdc);
                 }
                 GameUI(hWnd);
             }
@@ -546,9 +555,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
+                    hdc = GetDC(hWnd);
                     flagCritical = 0;
                     flagCritical = CriticalHit(2);
                     AttackFastSummary(hWnd);
+                    HitByCharater(hWnd, hdc);
+                    ReleaseDC(hWnd, hdc);
                 }
                 GameUI(hWnd);
             }
@@ -1017,8 +1029,9 @@ int AttackTurn(int myFast, int enemyFast) {
 }
 
 void HitByCharater(HWND hWnd, HDC hdc) {
-    //flag 1 -> 플레이어가 맞음
-    //flag 2 -> 적이 맞음
+    //flag 2 -> 플레이어가 맞음
+    //flag 1 -> 적이 맞음
+    //적 사망
     if (enemyMainCharacter->getCurrentHealth() <= 0) {
         gameStage++;
         enemyMainCharacter->EnemyUnit(gameStage, enemyRank);
@@ -1035,6 +1048,17 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         UpdateWindow(hWnd);
 
         ReleaseDC(hWnd, hdc);
+    }
+    //플레이어 사망
+    if (myMainCharacter->getCurrentHealth() <= 0) {
+        int resetCheck;
+        resetCheck = MessageBox(hWnd, L"전투에서 패배하였습니다! 환생하시겠습니까?\n환생한다면 지금까지 진행한 스테이지, 스텟, 스킬을 모두 잃게되지만\n(진행한 스테이지/5)*30의 초기 자금을 받고 1스테이지로 돌아갑니다.\n확인 버튼을 누르면 환생하고 취소 버튼을 누르면 종료됩니다.", L"사망", MB_OKCANCEL);
+        if (resetCheck == IDOK) {
+            ResetGameStater(hWnd);
+        }
+        else {
+            DestroyWindow(hWnd);
+        }
     }
 }
 
