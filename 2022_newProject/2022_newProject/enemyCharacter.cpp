@@ -57,6 +57,16 @@ void EnemyCharacter::EnemyUnit(int unitNumber, int rank) {
 	}
 }
 
+int EnemyCharacter::EnemyUnitHeal(int rank) {
+	int current = currentHealth;
+	int healPoint = 5 + (rank * 2);
+	current += healPoint;
+	if (current >= maxHealth) {
+		current = maxHealth;
+	}
+	return current;
+}
+
 void EnemyCharacter::Reset() {
 	maxHealth = 20;
 	currentHealth = maxHealth;

@@ -1,4 +1,4 @@
-// 2022_newProject.cpp : 애플리케이션에 대한 진입점을 정의합니다.
+﻿// 2022_newProject.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
 
 #include "framework.h"
@@ -76,6 +76,14 @@ BOOL knightBlackOut = FALSE;  // 기사 무력화
 ///기사(액티브)
 BOOL knightDoubleAttack = FALSE;  //기사 더블 어택
 BOOL knightIncisiveAttack = FALSE;  //기사 예리한 일격
+//기사와 다르게 도적은 이름으로 적지말고 번호로 적기
+///도적
+BOOL assassinSkillOne = FALSE;  // 약탈꾼
+int assassinCriticalUp = 0;  // 약점 노출 배수용
+BOOL assassinSkillTwo = FALSE;  // 백어택
+BOOL assassinSkillThree = FALSE;  // 잔상 공격
+
+
 
 //사용자 함수
 void ResetGameStater(HWND rs_hWnd);
@@ -319,6 +327,19 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
                 MessageBox(hDlg, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
             }
         }
+        else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_0_0 && mainSkillSet == 0) {
+            check = MessageBox(hDlg, L"도적 전직\n도적은 빠른 공격으로 적을 처치하는 스타일을 가진 직업입니다.\n속공 수치가 4증가합니다.\n다른 직업 스킬은 배울수없게됩니다.\n\n스킬 포인트가 필요합니다.", L"도적", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                skillPoint--;
+                myMainCharacter->setFastAttack(4);
+                mainSkillSet = myMainChaCharacterSkill->AssassinSkillSelect();
+                UpdateWindow(hWndUi);
+                InvalidateRect(hWndUi, &warArea, TRUE);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(hDlg, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
         //기사이면
         if (mainSkillSet == 1) {
             //기사 스킬 0
@@ -389,6 +410,81 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
                 }
                 else {
                     wsprintfW(skillText, L"주사위 *4 + 공격력의 공격을 가합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+        }
+        //도적이면
+        else if (mainSkillSet == 2) {
+            //도적 스킬 0
+            if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_1_1) {
+                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(0);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 0);
+                }
+                else {
+                    wsprintfW(skillText, L"상대방 처치시 돈을 5원 더 획득합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //도적 스킬 1
+            else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_1_2) {
+                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(1);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 1);
+                }
+                else {
+                    wsprintfW(skillText, L"자신의 속공 수치가 5증가합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //도적 스킬 2
+            else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_1_3) {
+                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(2);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 2);
+                }
+                else {
+                    wsprintfW(skillText, L"자신의 치명타 확률이 5% 증가합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //도적 스킬 3
+            else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_2_1) {
+                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(3);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 3);
+                }
+                else {
+                    wsprintfW(skillText, L"현재 체력의 10이 감소하지만 현재 스테이지에서 속공이 5증가합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //도적 스킬 4
+            else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_2_2) {
+                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(4);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 4);
+                }
+                else {
+                    wsprintfW(skillText, L"2의 추가공격력을 얻고 해당 공격의 치명타 피해량이 2배 -> 3배로 증가합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //도적 스킬 5
+            else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_2_3) {
+                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(5);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 5);
+                }
+                else {
+                    wsprintfW(skillText, L"주사위 * (자신의 속공 수치의 / 10) + 공격력의 공격을 가합니다.");
                     tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
                     SetWindowText(tempDlghWnd, skillText);
                 }
@@ -503,9 +599,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
                 break;
             case IDC_BTN_SKILL1: {
-                if (whoTurn == 1) {
+                if (whoTurn == 1 && mainSkillSet == 1) {
                     flagCritical = 0;
                     myTempAtkBuf += 4;
+                    whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
+                    flagTurn = 0;
+                }
+                else if (whoTurn == 1 && mainSkillSet == 2) {
+                    flagCritical = 0;
+                    myTempFastBuf += 5;
+                    myMainCharacter->setCurrentHealth(myMainCharacter->ImRealHit(10));
                     whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
                     flagTurn = 0;
                 }
@@ -522,11 +625,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
                 break;
             case IDC_BTN_SKILL2: {
-                if (whoTurn == 1) {
+                if (whoTurn == 1 && mainSkillSet == 1) {
                     hdc = GetDC(hWnd);
                     flagCritical = 0;
                     flagCritical = CriticalHit(1);
                     knightDoubleAttack = TRUE;
+                    AttackFastSummary(hWnd);
+                    HitByCharater(hWnd, hdc);
+                    ReleaseDC(hWnd, hdc);
+                }
+                else if (whoTurn == 1 && mainSkillSet == 2) {
+                    hdc = GetDC(hWnd);
+                    flagCritical = 0;
+                    flagCritical = CriticalHit(1);
+                    assassinSkillTwo = TRUE;
                     AttackFastSummary(hWnd);
                     HitByCharater(hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
@@ -544,11 +656,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
                 break;
             case IDC_BTN_SKILL3: {
-                if (whoTurn == 1) {
+                if (whoTurn == 1 && mainSkillSet == 1) {
                     hdc = GetDC(hWnd);
                     flagCritical = 0;
                     flagCritical = CriticalHit(1);
                     knightIncisiveAttack = TRUE;
+                    AttackFastSummary(hWnd);
+                    HitByCharater(hWnd, hdc);
+                    ReleaseDC(hWnd, hdc);
+                }
+                else if (whoTurn == 1 && mainSkillSet == 2) {
+                    hdc = GetDC(hWnd);
+                    flagCritical = 0;
+                    flagCritical = CriticalHit(1);
+                    assassinSkillThree = TRUE;
                     AttackFastSummary(hWnd);
                     HitByCharater(hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
@@ -677,7 +798,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             
             WCHAR str[32];
             //내 캐릭 체력/속공
-            wsprintfW(str, L"체력 : %d, 속공 : %d", myMainCharacter->getCurrentHealth(), playCharaterFast);
+            wsprintfW(str, L"체력 : %d, 속공 : %d", myMainCharacter->getCurrentHealth(), (myTempFastBuf + myMainCharacter->getFastAttack()));
             TextOut(hdc, myCharacterRect.left, myCharacterRect.top - 15, str, lstrlenW(str));
             //내 캐릭터 기본 보이기
             
@@ -685,6 +806,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (gameStarter == 1 && mainSkillSet == 1) {
                 MemDC = CreateCompatibleDC(hdc);
                 myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_KNIGHT1_IMAGE));
+                oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+                BitBlt(hdc, myCharacterRect.left, myCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                SelectObject(MemDC, oldBitmap);
+                DeleteObject(myBitmap);
+                DeleteDC(MemDC);
+            }
+            //도적 이미지 보여주기
+            else if (gameStarter == 1 && mainSkillSet == 2) {
+                MemDC = CreateCompatibleDC(hdc);
+                myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ASSASSIN1_IMAGE));
                 oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
                 BitBlt(hdc, myCharacterRect.left, myCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                 SelectObject(MemDC, oldBitmap);
@@ -846,14 +977,19 @@ void ResetGameStater(HWND rs_hWnd) {
 
     //스킬 모음
     ///스킬 포인트
-    int skillPoint = 0;
+    skillPoint = 0;
     ///기사(패시브)
-    BOOL knightWarDefence = FALSE;  // 기사 전투 태세
-    BOOL knightPowerForce = FALSE;  // 기사 위압
-    BOOL knightBlackOut = FALSE;  // 기사 무력화
+    knightWarDefence = FALSE;  // 기사 전투 태세
+    knightPowerForce = FALSE;  // 기사 위압
+    knightBlackOut = FALSE;  // 기사 무력화
     ///기사(액티브)
-    BOOL knightDoubleAttack = FALSE;  //기사 더블 어택
-    BOOL knightIncisiveAttack = FALSE;  //기사 예리한 일격
+    knightDoubleAttack = FALSE;  //기사 더블 어택
+    knightIncisiveAttack = FALSE;  //기사 예리한 일격
+    ///도적
+    assassinSkillOne = FALSE;  // 약탈꾼
+    assassinCriticalUp = 0;  // 약점 노출 배수용
+    assassinSkillTwo = FALSE;  // 백어택
+    assassinSkillThree = FALSE;  // 잔상 공격
 
     myMainCharacter->Reset();
     enemyMainCharacter->Reset();
@@ -872,37 +1008,63 @@ void ResetGameStater(HWND rs_hWnd) {
 }
 
 
-
 void AttackCharaterAni(HWND hWnd, int flag) {
     //flag 1이면 내캐릭터 2면 적 캐릭터 설정하기
     int i = 0;
     int atkDamage = 0;
     if (flag == 1) {
-        ///기사 액티브 스킬
-        //기사 더블 어택
-        if (knightDoubleAttack == TRUE) {
-            atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack((diceNumber *2), myMainCharacter->getDamage());
-            knightDoubleAttack = FALSE;
+        //기사
+        if (mainSkillSet == 1) {
+            ///기사 액티브 스킬
+            //기사 더블 어택
+            if (knightDoubleAttack == TRUE) {
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack((diceNumber * 2), myMainCharacter->getDamage());
+                knightDoubleAttack = FALSE;
+            }
+            ///기사 예리한 일격
+            else if (knightIncisiveAttack == TRUE) {
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack((diceNumber * 4), myMainCharacter->getDamage());
+                knightIncisiveAttack = FALSE;
+            }
+            else {
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, myMainCharacter->getDamage());
+            }
+            ///기사 패시브 스킬
+        //기사 무력화
+            if (knightBlackOut == TRUE) {
+                atkDamage += 6;
+            }
         }
-        ///기사 예리한 일격
-        else if (knightIncisiveAttack == TRUE) {
-            atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack((diceNumber * 4), myMainCharacter->getDamage());
-            knightIncisiveAttack = FALSE;
+        //도적
+        else if (mainSkillSet == 2) {
+            /// 도적 백어택
+            if (assassinSkillTwo == TRUE) {
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, (myMainCharacter->getDamage() + 2));
+            }
+            /// 도적 잔상 공격
+            else if (assassinSkillThree == TRUE) {
+                int tempFastPoint = (int)((myTempFastBuf + myMainCharacter->getFastAttack()) / 10);
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack((diceNumber * tempFastPoint), myMainCharacter->getDamage());
+                knightIncisiveAttack = FALSE;
+            }
+            else {
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, myMainCharacter->getDamage());
+            }
         }
         else {
             atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, myMainCharacter->getDamage());
         }
-
-        ///기사 패시브 스킬
-        //기사 무력화
-        if (knightBlackOut == TRUE) {
-            atkDamage += 6;
-        }
-
         //크리티컬 확인
         if (flagCritical == 1) {
-            atkDamage = atkDamage * 2;
+            if (assassinSkillTwo == TRUE) {
+                atkDamage = atkDamage * 3;
+            }
+            else {
+                atkDamage = atkDamage * 2;
+            }
         }
+        //도적 백어택 초기화
+        assassinSkillTwo = FALSE;
         enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(atkDamage));
         while (i <= 10) {
             myCharacterRect.left += 5;
@@ -935,6 +1097,16 @@ void AttackCharaterAni(HWND hWnd, int flag) {
                 enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(5));
             }
         }
+
+        //적대 대상 랜덤 변수 넣기
+        int enemyDice = 0;
+        srand((unsigned int)time(NULL));
+        enemyDice = (rand() % 6); //총 6개 패턴 넣기
+        ///그중 0~3는 버리는걸로 아무것도 안넣고 4는 체력회복 5는 스킬로 넣어주기(지금은 스킬 없으니 4~5가 회복)
+        if (enemyDice >= 4) {
+            enemyMainCharacter->setCurrentHealth(enemyMainCharacter->EnemyUnitHeal(enemyRank));
+        }
+
         myMainCharacter->setCurrentHealth(myMainCharacter->ImHit(atkDamage));
         while (i <= 10) {
             enemyCharacterRect.left -= 5;
@@ -1015,8 +1187,8 @@ int AttackTurn(int myFast, int enemyFast) {
             winFast = 2;
             break;
         }
-        playCharaterFast += myFast;
-        enemyCharaterFast += enemyFast;
+        playCharaterFast = playCharaterFast + myFast + myTempFastBuf;
+        enemyCharaterFast = enemyCharaterFast + enemyFast + enemyTempFastBuf;
         if (knightPowerForce == TRUE) {
             enemyCharaterFast -= 3;
         }
@@ -1035,6 +1207,9 @@ void HitByCharater(HWND hWnd, HDC hdc) {
     if (enemyMainCharacter->getCurrentHealth() <= 0) {
         gameStage++;
         enemyMainCharacter->EnemyUnit(gameStage, enemyRank);
+        if (assassinSkillOne == TRUE) {
+            gameMoney += 5;
+        }
         gameMoney = gameMoney + 10 + (enemyRank * 5);
         
         //속공 초기화 + 스테이지 버프 초기화
@@ -1042,6 +1217,8 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         playCharaterFast = 0;
         myTempAtkBuf = 0;
         enemyTempAtkBuf = 0;
+        myTempFastBuf = 0;
+        enemyTempFastBuf = 0;
 
         // 전체 초기화
         InvalidateRect(hWnd, NULL, TRUE); 
@@ -1064,83 +1241,164 @@ void HitByCharater(HWND hWnd, HDC hdc) {
 
 void GetSkill(HWND g_hWnd, int skillNumber) {
     int check;
-    //기사 스킬 0
-    if (skillNumber == 0) {
-        check = MessageBox(g_hWnd, L"상대방의 공격력이 자신의 방어력보다 낮을경우\n상대방에게 방어력에 영향을 받는 피해량 5를 줍니다.", L"전투 태세(패시브)", MB_OKCANCEL);
-        if (check == IDOK && skillPoint >= 1) {
-            knightWarDefence = TRUE;
-            skillPoint--;
-            myMainChaCharacterSkill->KnightSkill(0);
+    //기사
+    if (mainSkillSet == 1) {
+        //기사 스킬 0
+        if (skillNumber == 0) {
+            check = MessageBox(g_hWnd, L"상대방의 공격력이 자신의 방어력보다 낮을경우\n상대방에게 방어력에 영향을 받는 피해량 5를 줍니다.", L"전투 태세(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                knightWarDefence = TRUE;
+                skillPoint--;
+                myMainChaCharacterSkill->KnightSkill(0);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+            }
         }
-        else if (check == IDOK && skillPoint <= 0) {
-            MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+        //기사 스킬 1
+        else if (skillNumber == 1) {
+            check = MessageBox(g_hWnd, L"적의 속공 수치를 3낮춥니다.", L"위압(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                knightPowerForce = TRUE;
+                skillPoint--;
+                myMainChaCharacterSkill->KnightSkill(1);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+            }
         }
-    }
-    //기사 스킬 1
-    else if (skillNumber == 1) {
-        check = MessageBox(g_hWnd, L"적의 속공 수치를 3낮춥니다.", L"위압(패시브)", MB_OKCANCEL);
-        if (check == IDOK && skillPoint >= 1) {
-            knightPowerForce = TRUE;
-            skillPoint--;
-            myMainChaCharacterSkill->KnightSkill(1);
+        //기사 스킬 2
+        else if (skillNumber == 2) {
+            check = MessageBox(g_hWnd, L"자신의 속공 수치가 2낮아지지만 공격력이 6증가합니다.", L"무력화(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                knightBlackOut = TRUE;
+                skillPoint--;
+                myMainChaCharacterSkill->KnightSkill(2);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+            }
         }
-        else if (check == IDOK && skillPoint <= 0) {
-            MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+        //기사 스킬 3
+        else if (skillNumber == 3) {
+            check = MessageBox(g_hWnd, L"해당 스테이지에서 자신의 공격력이 4증가합니다.", L"신의 가호(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                SetWindowText(skillBtn1, L"신의 가호");
+                ShowWindow(skillBtn1, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->KnightSkill(3);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+            }
         }
-    }
-    //기사 스킬 2
-    else if (skillNumber == 2) {
-        check = MessageBox(g_hWnd, L"자신의 속공 수치가 2낮아지지만 공격력이 6증가합니다.", L"무력화(패시브)", MB_OKCANCEL);
-        if (check == IDOK && skillPoint >= 1) {
-            knightBlackOut = TRUE;
-            skillPoint--;
-            myMainChaCharacterSkill->KnightSkill(2);
-        }
-        else if (check == IDOK && skillPoint <= 0) {
-            MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
-        }
-    }
-    //기사 스킬 3
-    else if (skillNumber == 3) {
-        check = MessageBox(g_hWnd, L"해당 스테이지에서 자신의 공격력이 4증가합니다.", L"신의 가호(액티브)", MB_OKCANCEL);
-        if (check == IDOK && skillPoint >= 1) {
-            SetWindowText(skillBtn1, L"신의 가호");
-            ShowWindow(skillBtn1, SW_SHOW);
-            skillPoint--;
-            myMainChaCharacterSkill->KnightSkill(3);
-        }
-        else if (check == IDOK && skillPoint <= 0) {
-            MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
-        }
-    }
-    //기사 스킬 4
-    else if (skillNumber == 4) {
-        check = MessageBox(g_hWnd, L"주사위 *2 + 공격력의 공격을 가합니다.", L"더블 어택(액티브)", MB_OKCANCEL);
-        if (check == IDOK && skillPoint >= 1) {
-            SetWindowText(skillBtn2, L"더블 어택");
-            ShowWindow(skillBtn2, SW_SHOW);
-            skillPoint--;
-            myMainChaCharacterSkill->KnightSkill(4);
-        }
-        else if (check == IDOK && skillPoint <= 0) {
-            MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
-        }
+        //기사 스킬 4
+        else if (skillNumber == 4) {
+            check = MessageBox(g_hWnd, L"주사위 *2 + 공격력의 공격을 가합니다.", L"더블 어택(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                SetWindowText(skillBtn2, L"더블 어택");
+                ShowWindow(skillBtn2, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->KnightSkill(4);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+            }
 
-    }
-    //기사 스킬 5
-    else if (skillNumber == 5) {
-        check = MessageBox(g_hWnd, L"주사위 *4 + 공격력의 공격을 가합니다.", L"예리한 일격(액티브)", MB_OKCANCEL);
-        if (check == IDOK && skillPoint >= 1) {
-            SetWindowText(skillBtn3, L"예리한 일격");
-            ShowWindow(skillBtn3, SW_SHOW);
-            skillPoint--;
-            myMainChaCharacterSkill->KnightSkill(5);
         }
-        else if (check == IDOK && skillPoint <= 0) {
-            MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+        //기사 스킬 5
+        else if (skillNumber == 5) {
+            check = MessageBox(g_hWnd, L"주사위 *4 + 공격력의 공격을 가합니다.", L"예리한 일격(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                SetWindowText(skillBtn3, L"예리한 일격");
+                ShowWindow(skillBtn3, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->KnightSkill(5);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
+            }
         }
     }
-    
+    //도적
+    else if (mainSkillSet == 2) {
+        //도적 스킬 0
+        if (skillNumber == 0) {
+            check = MessageBox(g_hWnd, L"상대방 처치시 돈을 5원 더 획득합니다.", L"약탈꾼(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                assassinSkillOne = TRUE;
+                skillPoint--;
+                myMainChaCharacterSkill->AssassinSkill(0);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
+        //도적 스킬 1
+        else if (skillNumber == 1) {
+            check = MessageBox(g_hWnd, L"자신의 속공 수치가 5증가합니다.", L"재빠른 손놀림(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                skillPoint--;
+                myMainChaCharacterSkill->AssassinSkill(1);
+                myMainCharacter->setFastAttack(5);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
+        //도적 스킬 2
+        else if (skillNumber == 2) {
+            check = MessageBox(g_hWnd, L"자신의 치명타 확률이 5% 증가합니다.", L"약점 포착(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                skillPoint--;
+                myMainChaCharacterSkill->AssassinSkill(2);
+                assassinCriticalUp += 5;
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
+        //도적 스킬 3
+        else if (skillNumber == 3) {
+            check = MessageBox(g_hWnd, L"현재 체력의 10이 감소하지만 현재 스테이지에서 속공이 5증가합니다.", L"아드레날린(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                SetWindowText(skillBtn1, L"아드레날린");
+                ShowWindow(skillBtn1, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->AssassinSkill(3);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
+        //도적 스킬 4
+        else if (skillNumber == 4) {
+            check = MessageBox(g_hWnd, L"2의 추가공격력을 얻고 해당 공격의 치명타 피해량이 2배 -> 3배로 증가합니다.", L"백어택(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                SetWindowText(skillBtn2, L"백어택");
+                ShowWindow(skillBtn2, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->AssassinSkill(4);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+
+        }
+        //도적 스킬 5
+        else if (skillNumber == 5) {
+            check = MessageBox(g_hWnd, L"주사위 * (자신의 속공 수치의 / 10) + 공격력의 공격을 가합니다.", L"잔상 공격(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                SetWindowText(skillBtn3, L"잔상 공격");
+                ShowWindow(skillBtn3, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->AssassinSkill(5);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
+    }
     //나중에 스킬 포인트 제대로 어찌할지 정하고 하기
     //복붙용이니 나머지는 지움
     /*
@@ -1161,13 +1419,11 @@ int CriticalHit(int flagNumber) {
     int critical;  // 크리티컬 확률 변수
     srand((unsigned int)time(NULL));
     critical = (rand() % 100) + 1;
-    if (critical <= defaultCritical) {
-        if (flagNumber == 1) {
-            return 1;
-        }
-        else if (flagNumber == 2) {
-            return 2;
-        }
+    if (flagNumber == 1 && critical <= (defaultCritical + assassinCriticalUp)) {
+        return 1;
+    }
+    else if (flagNumber == 2 && critical <= (defaultCritical - 5)) {
+        return 2;
     }
     return 0;
 }

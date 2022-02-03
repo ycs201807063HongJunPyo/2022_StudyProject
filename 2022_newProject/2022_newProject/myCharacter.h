@@ -16,6 +16,7 @@ public:
 	MyCharacter();
 	int DefaultAttack(int number, int damage);
 	int ImHit(int attackDamage);
+	int ImRealHit(int attackDamage);
 	void Reset();
 
 	int getHealth() {

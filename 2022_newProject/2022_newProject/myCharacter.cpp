@@ -23,6 +23,12 @@ int MyCharacter::ImHit(int attackDamage) {
 	return current;
 }
 
+int MyCharacter::ImRealHit(int attackDamage) {
+	int current = currentHealth;
+	current = currentHealth - (attackDamage);
+	return current;
+}
+
 void MyCharacter::Reset() {
 	maxHealth = 60;
 	currentHealth = maxHealth;

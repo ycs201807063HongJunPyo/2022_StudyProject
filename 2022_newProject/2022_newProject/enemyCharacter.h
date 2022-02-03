@@ -17,6 +17,7 @@ public:
 	int DefaultAttack(int number, int damage);
 	int ImHit(int attackDamage);
 	void EnemyUnit(int unitNumber, int rank);
+	int EnemyUnitHeal(int rank);
 	void Reset();
 
 	int getHealth() {

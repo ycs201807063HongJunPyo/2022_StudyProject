@@ -28,8 +28,9 @@
 #define IDB_ENEMYTANKER1                141
 #define IDB_ENEMYMACHINE                142
 #define IDB_CRITICALMENT                145
-#define IDB_BITMAP1                     146
 #define IDB_NOOBIE_IMAGE                146
+#define IDB_ASSA                        147
+#define IDB_ASSASSIN1_IMAGE             147
 #define IDC_BUTTON_STRUP                1000
 #define IDC_BUTTON_DPUP                 1001
 #define IDC_STATIC_STRTEXT              1002
@@ -73,7 +74,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        147
+#define _APS_NEXT_RESOURCE_VALUE        148
 #define _APS_NEXT_COMMAND_VALUE         32777
 #define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           110

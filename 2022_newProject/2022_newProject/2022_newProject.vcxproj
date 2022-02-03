@@ -172,6 +172,7 @@
     <Image Include="EnemyImage\EnemySpeedDog.bmp" />
     <Image Include="EnemyImage\EnemyTanker.bmp" />
     <Image Include="GITA\CriticalMent.bmp" />
+    <Image Include="JobImage\Assassin.bmp" />
     <Image Include="JobImage\knight.bmp" />
     <Image Include="JobImage\Noobie.bmp" />
     <Image Include="small.ico" />

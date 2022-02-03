@@ -12,8 +12,13 @@ public:
 	SkillJob();
 
 	int KnightSkillSelect();
-	void Reset();
+	int AssassinSkillSelect();
 
 	void KnightSkill(int skillNumber);
 	int GetKnightSkill(int skillNumber);
+
+	void AssassinSkill(int skillNumber);
+	int GetAssassinSkill(int skillNumber);
+
+	void Reset();
 };
