@@ -29,8 +29,8 @@
 #define IDB_ENEMYMACHINE                142
 #define IDB_CRITICALMENT                145
 #define IDB_NOOBIE_IMAGE                146
-#define IDB_ASSA                        147
 #define IDB_ASSASSIN1_IMAGE             147
+#define IDD_WANDERER                    148
 #define IDC_BUTTON_STRUP                1000
 #define IDC_BUTTON_DPUP                 1001
 #define IDC_STATIC_STRTEXT              1002
@@ -53,14 +53,23 @@
 #define IDC_STATIC_FASTPOINT            1011
 #define IDC_BUTTON_ASSASSIN_0_0         1011
 #define IDC_BUTTON_ASSASSIN_1_1         1012
+#define IDC_BUTTON_CRIUP                1012
 #define IDC_BUTTON_ASSASSIN_1_2         1013
+#define IDC_STATIC_CRITEXT              1013
 #define IDC_BUTTON_ASSASSIN_1_3         1014
+#define IDC_STATIC_CRIPOINT             1014
 #define IDC_BUTTON_ASSASSIN_2_1         1015
+#define IDC_STATIC_STRTEXT2             1015
+#define IDC_STATIC_MONEYPOINT           1015
 #define IDC_BUTTON_ASSASSIN_2_2         1016
 #define IDC_BUTTON_ASSASSIN_2_3         1017
 #define IDC_STATIC_GROUP_2              1018
 #define IDC_STATIC_SKILLHELPTEXT        1020
 #define IDC_STATIC_SKILLPOINT           1022
+#define IDC_STATIC_WANDERERTEXT         1023
+#define IDC_BUTTON_WANDERER1            1024
+#define IDC_BUTTON_WANDERER2            1025
+#define IDC_BUTTON_WANDERER3            1026
 #define ID_32771                        32771
 #define IDSTAT                          32772
 #define ID_32773                        32773
@@ -74,9 +83,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        148
+#define _APS_NEXT_RESOURCE_VALUE        149
 #define _APS_NEXT_COMMAND_VALUE         32777
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_CONTROL_VALUE         1028
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

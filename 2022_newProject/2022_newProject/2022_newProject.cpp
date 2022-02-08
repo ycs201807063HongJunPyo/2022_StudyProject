@@ -34,8 +34,9 @@ RECT myClientRect;  // 사용가능 영역 크기
 int gameStarter = 0;  // 게임 시작 유무 확인
 int gameStage = 0;  // 게임스테이지
 int diceNumber = 1;  // 주사위 숫자
-int gameMoney = 100;  // 게임 자본
+int gameMoney = 150;  // 게임 자본
 int enemyRank = 1;  // 적 반복횟수용
+int whoWanderer = 0;  // 떠돌이 상인 변수
 
 int whoTurn = 0; // 누구 공격 차례인가
 int flagTurn = 1;  // 속공 함수로 들어가는지 확인용 플래그 변수
@@ -89,7 +90,7 @@ BOOL assassinSkillThree = FALSE;  // 잔상 공격
 void ResetGameStater(HWND rs_hWnd);
 void AttackCharaterAni(HWND hWnd, int flag);
 void AttackFastSummary(HWND hWnd);
-void SavaStatPoint(HWND statDlghWnd, HWND mainhWnd);
+void SaveStatPoint(HWND statDlghWnd, HWND mainhWnd);
 void GameUI(HWND hWnd);
 int AttackTurn(int myFast, int enemyFast);
 void HitByCharater(HWND hWnd, HDC hdc);
@@ -218,6 +219,104 @@ EnemyCharacter* enemyMainCharacter = new EnemyCharacter;
 Engraving* engravingStat = new Engraving;
 SkillJob* myMainChaCharacterSkill = new SkillJob;
 
+//떠돌이 상인 다이얼로그
+BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+
+    WCHAR wandererText[256] = { 0, };
+    HWND tempDlghWnd;
+
+    switch (iMessage) {
+    case WM_INITDIALOG:
+        SetDlgItemInt(hDlg, 100, 100, FALSE);
+        SetDlgItemInt(hDlg, 150, 150, FALSE);
+        
+        
+        //떠돌이 상인 등장!
+        if (whoWanderer == 1) {
+            //체력을 소모하여 힘 스탯 3증가
+            wsprintfW(wandererText, L"반갑구만 모험가!\n근육이 그렇게 약해서야 진정한 모험을 떠날수없지\n15체력 저하 물약을 마시면 자네는 더욱 강해질수있는데 어떤가?\n아니면 15원짜리 체력회복 물약도있네");
+            tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_WANDERERTEXT);
+            SetWindowText(tempDlghWnd, wandererText);
+            whoWanderer = 1;
+        }
+        else if (whoWanderer == 2) {
+            //돈을 소모하여 방어력 스탯 3증가
+            wsprintfW(wandererText, L"반갑구만 모험가!\n모험을 떠나는데 충분한 준비는했겠지?\n이 50원짜리 든든한 방패를 산다면 모험에 도움이 될텐데..\n아니면 15원짜리 체력회복 물약도있네");
+            tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_WANDERERTEXT);
+            SetWindowText(tempDlghWnd, wandererText);
+            whoWanderer = 2;
+        }
+        else if (whoWanderer == 3) {
+            //돈을 소모하여 스킬포인트 1증가
+            wsprintfW(wandererText, L"마법학회에서 연구중인 스킬포인트 물약을 가져왔는데\n어때 한번 사보겠나? 250원이라내\n돈이 없다면 15원짜리 체력회복 물약도 있고");
+            tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_WANDERERTEXT);
+            SetWindowText(tempDlghWnd, wandererText);
+            whoWanderer = 3;
+        }
+        
+        return TRUE;
+
+    case WM_COMMAND:
+        //처음 버튼 눌렀을때(상인 찬성)
+        if (LOWORD(wParam) == IDC_BUTTON_WANDERER1) {
+            //처음 상인(체력 -> 공격력)
+            if (whoWanderer == 1) {
+                if (myMainCharacter->getCurrentHealth() > 15) {
+                    myMainCharacter->setDamage(3);
+                    myMainCharacter->ImRealHit(15);
+                }
+                else {
+                    MessageBox(hDlg, L"큰일날뻔했어!\n자네 체력이 너무 없구만\n아쉽지만 다음에 보지", L"무산된 거래", MB_OK);
+                }
+            }
+            else if (whoWanderer == 2) {
+                //두번째 상인(돈 -> 방어력)
+                if (gameMoney >= 50) {
+                    myMainCharacter->setDefence(3);
+                    gameMoney -= 50;
+                }
+                else {
+                    MessageBox(hDlg, L"이봐! 돈도없으면서 거래는 무슨\n돈을 벌고 오게", L"무산된 거래", MB_OK);
+                }
+            }
+            else if (whoWanderer == 3) {
+                //세번째 상인(돈 -> 스킬포인트)
+                if (gameMoney >= 250) {
+                    skillPoint++;
+                    gameMoney -= 250;
+                }
+                else {
+                    MessageBox(hDlg, L"이 귀한걸 그냥 달라고하는군", L"무산된 거래", MB_OK);
+                }
+            }
+        }
+        //두번째 물약 버튼눌렀을때(상인 반대)
+        else if (LOWORD(wParam) == IDC_BUTTON_WANDERER2) {
+            if (gameMoney >= 15) {
+                gameMoney -= 15;
+                myMainCharacter->setCurrentHealth(myMainCharacter->getCurrentHealth() + 15);
+                if (myMainCharacter->getHealth() < myMainCharacter->getCurrentHealth()) {
+                    myMainCharacter->setCurrentHealth(myMainCharacter->getHealth());
+                }
+            }
+            else {
+                MessageBox(hDlg, L"아무리 싸구려 포션이더라도 포션은 포션이야 돈을 가져오라고", L"무산된 거래", MB_OK);
+            }
+        }
+        //세번째 버튼 지나간다.
+        else if (LOWORD(wParam) == IDC_BUTTON_WANDERER3) {
+            EndDialog(hDlg, LOWORD(wParam));
+        }
+        //끝내기
+        EndDialog(hDlg, LOWORD(wParam));
+        break;
+    }
+    
+    
+    return 0;
+}
+
 //스탯 다이얼로그
 BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
@@ -227,7 +326,9 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
         SetDlgItemInt(hDlg, 100, 100, FALSE);
         SetDlgItemInt(hDlg, 150, 150, FALSE);
         //적용된 스텟 보여주기
-        SavaStatPoint(hDlg, hWndUi);
+        SaveStatPoint(hDlg, hWndUi);
+
+        
         return TRUE;
     
     case WM_COMMAND:
@@ -280,7 +381,18 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
                 MessageBox(hDlg, L"돈이 부족합니다!\n스테이지를 진행하며 돈을 획득해주세요", L"더 줘", MB_OK);
             }
         }
-        SavaStatPoint(hDlg, hWndUi);
+        //크리티컬 스텟 찍었을때
+        else if (LOWORD(wParam) == IDC_BUTTON_CRIUP) {
+            if (gameMoney >= engravingStat->costArray[4]) {
+                gameMoney -= engravingStat->costArray[4];
+                engravingStat->UpCriPoint();
+                myMainCharacter->setCritical(1);
+            }
+            else {
+                MessageBox(hDlg, L"돈이 부족합니다!\n스테이지를 진행하며 돈을 획득해주세요", L"더 줘", MB_OK);
+            }
+        }
+        SaveStatPoint(hDlg, hWndUi);
         break;
     }
     return 0;
@@ -484,7 +596,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
                     GetSkill(hDlg, 5);
                 }
                 else {
-                    wsprintfW(skillText, L"주사위 * (자신의 속공 수치의 / 10) + 공격력의 공격을 가합니다.");
+                    wsprintfW(skillText, L"주사위 * (자신의 속공 수치 / 10) + 공격력의 공격을 가합니다.");
                     tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
                     SetWindowText(tempDlghWnd, skillText);
                 }
@@ -607,9 +719,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 else if (whoTurn == 1 && mainSkillSet == 2) {
                     flagCritical = 0;
-                    myTempFastBuf += 5;
-                    myMainCharacter->setCurrentHealth(myMainCharacter->ImRealHit(10));
-                    whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
+                    if (myMainCharacter->getCurrentHealth() > 10) {
+                        myTempFastBuf += 5;
+                        myMainCharacter->setCurrentHealth(myMainCharacter->ImRealHit(10));
+                        whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
+                        InvalidateRect(hWnd, &warArea, TRUE);
+                        UpdateWindow(hWnd);  //윈도우 업데이트로 인게임 플레이어(캐릭터 위) 체력 최신화
+                    }
+                    else {
+                        MessageBox(hWnd, L"체력이 부족하여 스킬사용이 불가능합니다.\n아드레날린은 체력을 10소모합니다.", L"사용불가", MB_OK);
+                    }
                     flagTurn = 0;
                 }
                 //적 공격
@@ -842,28 +961,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (gameStarter == 1 && enemyModel == 0) {
                 enemyRank++;
                 if (getSkill == 0) {
-                    check = MessageBox(hWnd, L"신비로운 힘이 당신 주변에 가까워집니다.\n스킬 포인트를 획득했습니다.", L"스킬포인트", MB_OK);
+                    check = MessageBox(hWnd, L"신비로운 힘이 당신 주변에 가까워집니다.\n체력을 15회복합니다.\n스킬 포인트를 획득했습니다.", L"스킬포인트", MB_OK);
                     if (check == IDOK) {
                         skillPoint++;
-                        GameUI(hWnd);
+                        myMainCharacter->setCurrentHealth(myMainCharacter->getCurrentHealth() + 15);
+                        if (myMainCharacter->getHealth() < myMainCharacter->getCurrentHealth()) {
+                            myMainCharacter->setCurrentHealth(myMainCharacter->getHealth());
+                        }
                     }
                 }
                 else {
-                    check = MessageBox(hWnd, L"떠돌이 상인이 물약을 판매한다고합니다.\n구입시 현재 체력을 15회복합니다.(15 Gold)", L"떠돌이 상인!", MB_OKCANCEL);
-                    if (check == IDOK) {
-                        if (gameMoney >= 15) {
-                            gameMoney -= 15;
-                            myMainCharacter->setCurrentHealth(myMainCharacter->getCurrentHealth() + 15);
-                            if (myMainCharacter->getHealth() < myMainCharacter->getCurrentHealth()) {
-                                myMainCharacter->setCurrentHealth(myMainCharacter->getHealth());
-                                GameUI(hWnd);
-                            }
-                        }
-                        else {
-                            MessageBox(hWnd, L"돈이 부족합니다!", L"떠돌이 상인!", MB_OK);
-                        }
-                    }
+                    //어느 상인이 나오나?
+                    whoWanderer = (rand() % 3) + 1;
+                    //떠상 다이얼로그
+                    DialogBox(hInst, MAKEINTRESOURCE(IDD_WANDERER), hWnd, WandererDlgProc);
                 }
+                //다음 스테이지로 넘겨주고 UI 새로고침해주기
+                HitByCharater(hWnd, hdc);
+                GameUI(hWnd);
             }
             //적 모형
             else if (gameStarter == 1 && enemyModel == 1 || enemyModel == 3) {
@@ -907,7 +1022,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     DeleteDC(MemDC);
                 }
             }
-            HitByCharater(hWnd, hdc);
+            
             EndPaint(hWnd, &ps);
         }
         break;
@@ -956,6 +1071,7 @@ void ResetGameStater(HWND rs_hWnd) {
     gameStage = 0;  // 게임스테이지
     diceNumber = 1;  // 주사위 숫자
     enemyRank = 1;  // 적 반복횟수용
+    whoWanderer = 0;  // 떠돌이 상인 초기화
 
     whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack()); // 누구 공격 차례인가
     flagTurn = 1;  // 속공 함수로 들어가는지 확인용 플래그 변수
@@ -996,7 +1112,7 @@ void ResetGameStater(HWND rs_hWnd) {
     engravingStat->Reset();
     myMainChaCharacterSkill->Reset();
     //gameMoney + money해준다
-    gameMoney = 100 + money;  // 게임 자본
+    gameMoney = 150 + money;  // 게임 자본
 
     //새로운 적 배치
     gameStage++;
@@ -1126,6 +1242,7 @@ void AttackCharaterAni(HWND hWnd, int flag) {
             i++;
         }
     }
+    
     //잠시 대기!
     Sleep(100);
     drawDice = FALSE;
@@ -1142,9 +1259,14 @@ void AttackFastSummary(HWND hWnd) {
     flagTurn = 0;
 }
 
-void SavaStatPoint(HWND statDlghWnd, HWND mainhWnd) {
+void SaveStatPoint(HWND statDlghWnd, HWND mainhWnd) {
     WCHAR eDlgBuf[32] = { 0, };
     HWND tempDlghWnd;
+
+    //금액 / 힘 / 방어력 / 체력 / 속공 / 치명타
+    wsprintfW(eDlgBuf, L"보유한 금액 : %d", gameMoney);
+    tempDlghWnd = GetDlgItem(statDlghWnd, IDC_STATIC_MONEYPOINT);
+    SetWindowText(tempDlghWnd, eDlgBuf);
 
     wsprintfW(eDlgBuf, L"%d / cost : %d", engravingStat->strPoint, engravingStat->costArray[0]);
     tempDlghWnd = GetDlgItem(statDlghWnd, IDC_STATIC_STRPOINT);
@@ -1161,16 +1283,22 @@ void SavaStatPoint(HWND statDlghWnd, HWND mainhWnd) {
     wsprintfW(eDlgBuf, L"%d / cost : %d", engravingStat->fastPoint, engravingStat->costArray[3]);
     tempDlghWnd = GetDlgItem(statDlghWnd, IDC_STATIC_FASTPOINT);
     SetWindowText(tempDlghWnd, eDlgBuf);
+
+    wsprintfW(eDlgBuf, L"%d / cost : %d", engravingStat->criPoint, engravingStat->costArray[4]);
+    tempDlghWnd = GetDlgItem(statDlghWnd, IDC_STATIC_CRIPOINT);
+    SetWindowText(tempDlghWnd, eDlgBuf);
     GameUI(hWndUi);
 
 }
 
 void GameUI(HWND hWnd) {
     WCHAR UIText[128] = { 0, };
-    wsprintfW(UIText, L" 현재 체력 / 최대 체력 : %d / %d \n공격력 : %d + (%d)\n방어력 : %d\n돈 : %d"
+    wsprintfW(UIText, L"현재 체력 / 최대 체력 : %d / %d \n공격력 : %d + (%d)\n방어력 : %d\n돈 : %d"
         , myMainCharacter->getCurrentHealth(), myMainCharacter->getHealth(), myMainCharacter->getDamage(), myTempAtkBuf, myMainCharacter->getDefence(), gameMoney);
     gameHealthStatic = CreateWindowEx(WS_EX_TRANSPARENT, L"static", UIText, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
         (myClientRect.left + 20), 20, 300, 70, hWnd, (HMENU)(HMENU)-1, NULL, NULL);
+    //UpdateWindow(hWnd);
+    ///->안하는 이유 자꾸 paint 불러와서 떠상일때 버그 유발함
 }
 
 int AttackTurn(int myFast, int enemyFast) {
@@ -1201,8 +1329,6 @@ int AttackTurn(int myFast, int enemyFast) {
 }
 
 void HitByCharater(HWND hWnd, HDC hdc) {
-    //flag 2 -> 플레이어가 맞음
-    //flag 1 -> 적이 맞음
     //적 사망
     if (enemyMainCharacter->getCurrentHealth() <= 0) {
         gameStage++;
@@ -1210,7 +1336,7 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         if (assassinSkillOne == TRUE) {
             gameMoney += 5;
         }
-        gameMoney = gameMoney + 10 + (enemyRank * 5);
+        gameMoney = gameMoney + 10 + (enemyRank * 10);
         
         //속공 초기화 + 스테이지 버프 초기화
         enemyCharaterFast = 0;
@@ -1419,7 +1545,7 @@ int CriticalHit(int flagNumber) {
     int critical;  // 크리티컬 확률 변수
     srand((unsigned int)time(NULL));
     critical = (rand() % 100) + 1;
-    if (flagNumber == 1 && critical <= (defaultCritical + assassinCriticalUp)) {
+    if (flagNumber == 1 && critical <= (myMainCharacter->getCritical() + assassinCriticalUp)) {
         return 1;
     }
     else if (flagNumber == 2 && critical <= (defaultCritical - 5)) {

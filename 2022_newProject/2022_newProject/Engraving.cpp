@@ -5,7 +5,8 @@ Engraving::Engraving() {
 	dpPoint = 0;
 	hpPoint = 0;
 	fastPoint = 0;
-	for (int i = 0; i <= 3; i++) {
+	criPoint = 0;
+	for (int i = 0; i <= 4; i++) {
 		costArray[i] = 10;
 	}
 }
@@ -29,13 +30,18 @@ void Engraving::UpFastPoint() {
 	costArray[3] += 10;
 	fastPoint++;
 }
+void Engraving::UpCriPoint() {
+	costArray[4] += 10;
+	criPoint++;
+}
 
 void Engraving::Reset() {
 	strPoint = 0;
 	dpPoint = 0;
 	hpPoint = 0;
 	fastPoint = 0;
-	for (int i = 0; i <= 3; i++) {
+	criPoint = 0;
+	for (int i = 0; i <= 4; i++) {
 		costArray[i] = 10;
 	}
 }

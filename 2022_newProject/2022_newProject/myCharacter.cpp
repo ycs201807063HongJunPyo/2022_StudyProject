@@ -7,6 +7,7 @@ MyCharacter::MyCharacter(){
 	damage = 4;
 	defence = 1;
 	fastAttack = 20;
+	critical = 10;
 }
 
 int MyCharacter::DefaultAttack(int number, int playerDamage) {
@@ -35,4 +36,5 @@ void MyCharacter::Reset() {
 	damage = 4;
 	defence = 1;
 	fastAttack = 20;
+	critical = 10;
 }

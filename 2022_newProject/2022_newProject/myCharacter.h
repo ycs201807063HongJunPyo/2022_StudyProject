@@ -11,6 +11,7 @@ private:
 	int damage;
 	int defence;
 	int fastAttack;
+	int critical;
 
 public:
 	MyCharacter();
@@ -34,7 +35,9 @@ public:
 	int getFastAttack() {
 		return fastAttack;
 	}
-	
+	int getCritical() {
+		return critical;
+	}
 
 	void setMaxHealth(int current) {
 		maxHealth = current;
@@ -54,6 +57,9 @@ public:
 	}
 	void setFastAttack(int dpStat) {
 		fastAttack += dpStat;
+	}
+	void setCritical(int dpStat) {
+		critical += dpStat;
 	}
 };
 
