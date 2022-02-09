@@ -37,6 +37,10 @@ int diceNumber = 1;  // 주사위 숫자
 int gameMoney = 150;  // 게임 자본
 int enemyRank = 1;  // 적 반복횟수용
 int whoWanderer = 0;  // 떠돌이 상인 변수
+int treasureNumber = 0;  // 각인 변수
+int treasurePlusAtk = 0;  // 각인 이자 변수
+int treasureCritical = 0;  // 각인 약점 공략
+int treasureFastFast = 0;  //각인 속전속결
 
 int whoTurn = 0; // 누구 공격 차례인가
 int flagTurn = 1;  // 속공 함수로 들어가는지 확인용 플래그 변수
@@ -84,14 +88,14 @@ int assassinCriticalUp = 0;  // 약점 노출 배수용
 BOOL assassinSkillTwo = FALSE;  // 백어택
 BOOL assassinSkillThree = FALSE;  // 잔상 공격
 
-
-
 //사용자 함수
 void ResetGameStater(HWND rs_hWnd);
 void AttackCharaterAni(HWND hWnd, int flag);
 void AttackFastSummary(HWND hWnd);
 void SaveStatPoint(HWND statDlghWnd, HWND mainhWnd);
+void SaveTreasurePoint(HWND treaDlghWnd, HWND mainhWnd);
 void GameUI(HWND hWnd);
+void GameCharacterUI(HWND hWnd, HDC hdc);
 int AttackTurn(int myFast, int enemyFast);
 void HitByCharater(HWND hWnd, HDC hdc);
 void GetSkill(HWND g_hWnd, int skillNumber);
@@ -264,7 +268,7 @@ BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
             if (whoWanderer == 1) {
                 if (myMainCharacter->getCurrentHealth() > 15) {
                     myMainCharacter->setDamage(3);
-                    myMainCharacter->ImRealHit(15);
+                    myMainCharacter->setCurrentHealth(myMainCharacter->ImRealHit(15));
                 }
                 else {
                     MessageBox(hDlg, L"큰일날뻔했어!\n자네 체력이 너무 없구만\n아쉽지만 다음에 보지", L"무산된 거래", MB_OK);
@@ -327,8 +331,6 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
         SetDlgItemInt(hDlg, 150, 150, FALSE);
         //적용된 스텟 보여주기
         SaveStatPoint(hDlg, hWndUi);
-
-        
         return TRUE;
     
     case WM_COMMAND:
@@ -393,6 +395,8 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
             }
         }
         SaveStatPoint(hDlg, hWndUi);
+        InvalidateRect(hWndUi, &warArea, TRUE);
+        UpdateWindow(hWndUi);
         break;
     }
     return 0;
@@ -611,6 +615,58 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
     return 0;
 }
 
+//각인 다이얼로그
+BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+    /*
+    /// 각인 설명
+    -1 판금갑옷 : 판금갑옷 : 방어력에 영향을 받는 최종적인 피해가 4감소합니다.
+    -2 이자 : 각인을 얻고 10번째 공격마다 추가 피해 10+(적 강화수치 *2)를 줍니다.
+    -3 회복약 : 전투가 끝나면 체력을 10회복합니다.(최대 체력이라면 5원을 회복합니다.)
+    -4 여신의 가호 : 방어력 / 5 만큼 추가 방어력을 제공합니다.
+    -5 속전속결 : 공격력이 2, 속공 수치가 2증가합니다.
+    -6 약점 공략 : 치명타 확률이 5%증가합니다.
+        */
+    WCHAR treasureNeedMoneyText[32] = { 0, };
+    HWND tempDlghWnd;
+    switch (iMessage) {
+    case WM_INITDIALOG:
+        SetDlgItemInt(hDlg, 100, 100, FALSE);
+        SetDlgItemInt(hDlg, 150, 150, FALSE);
+        wsprintfW(treasureNeedMoneyText, L"각인 변환 비용 30원");
+        tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_TREASUREMONEY);
+        SetWindowText(tempDlghWnd, treasureNeedMoneyText);
+        SaveTreasurePoint(hDlg, hWndUi);
+
+        return TRUE;
+
+    case WM_COMMAND:
+        //창 닫기
+        if (LOWORD(wParam) == IDCANCEL || LOWORD(wParam) == IDCLOSE)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+        }
+        //변환 눌렀을때
+        else if (LOWORD(wParam) == IDC_BUTTON_TREASURESELECT) {
+            if (gameMoney >= 30) {
+                gameMoney -= 30;
+                treasureFastFast = 0;  // 속전속결 버프 초기화
+                treasureCritical = 0;  // 약점 공략 버프 초기화
+                treasureNumber = (rand() % 6) + 1;
+                SaveTreasurePoint(hDlg, hWndUi);
+            }
+            else {
+                MessageBox(hWndUi, L"각인 변환을 위한 금액이 부족합니다.", L"각인", MB_OK);
+            }
+            
+        }
+        InvalidateRect(hWndUi, NULL, TRUE);
+        UpdateWindow(hWndUi);
+        break;
+    }
+    return 0;
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
@@ -679,13 +735,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 warArea.left = myClientRect.left;
                 warArea.right = myClientRect.right;
                 warArea.top = 190;
-                warArea.bottom = 510;
+                warArea.bottom = 520;
                 GameUI(hWnd);
                 InvalidateRect(hWnd, &warArea, TRUE);
                 ReleaseDC(hWnd, hdc);
                 break;
             case IDC_BTN_HELP:
-                MessageBox(hWnd, L"도움말 출력.", L"도움말", MB_OK);
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
 
             case IDC_BTN_ATTACK: {
@@ -818,6 +874,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     DialogBox(hInst, MAKEINTRESOURCE(IDD_SKILL_K), hWnd, SkillDlgProc);
                 }
                 break;
+            case IDTREASURE:
+                if (gameStarter == 1) {
+                    DialogBox(hInst, MAKEINTRESOURCE(IDD_TREASURE_P), hWnd, TreasureDlgProc);
+                }
+                break;
             case IDRESETGAMESTARTER:
                 if (gameStarter == 1) {
                     int resetCheck;
@@ -915,12 +976,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteDC(MemDC);
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
             
-            WCHAR str[32];
-            //내 캐릭 체력/속공
-            wsprintfW(str, L"체력 : %d, 속공 : %d", myMainCharacter->getCurrentHealth(), (myTempFastBuf + myMainCharacter->getFastAttack()));
-            TextOut(hdc, myCharacterRect.left, myCharacterRect.top - 15, str, lstrlenW(str));
+            //내 캐릭, 적 캐릭 인게임 정보창
+            if (gameStarter == 1) {
+                GameCharacterUI(hWnd, hdc);
+            }
             //내 캐릭터 기본 보이기
-            
             //기사 이미지 보여주기
             if (gameStarter == 1 && mainSkillSet == 1) {
                 MemDC = CreateCompatibleDC(hdc);
@@ -952,8 +1012,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteDC(MemDC);
             }
             
-            wsprintfW(str, L"체력 : %d, 속공 : %d, 공격력 : %d", enemyMainCharacter->getCurrentHealth(), enemyCharaterFast, enemyMainCharacter->getDamage());
-            TextOut(hdc, enemyCharacterRect.left, enemyCharacterRect.top - 15, str, lstrlenW(str));
             int enemyModel = gameStage % 5;
             int getSkill = gameStage % 10;
             int check;
@@ -961,6 +1019,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (gameStarter == 1 && enemyModel == 0) {
                 enemyRank++;
                 if (getSkill == 0) {
+                    MemDC = CreateCompatibleDC(hdc);
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITSKILLPOINT));
+                    oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+                    BitBlt(hdc, (myClientRect.right / 2 - 150), 200, 140, 160, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                    SelectObject(MemDC, oldBitmap);
+                    DeleteObject(myBitmap);
+                    DeleteDC(MemDC);
                     check = MessageBox(hWnd, L"신비로운 힘이 당신 주변에 가까워집니다.\n체력을 15회복합니다.\n스킬 포인트를 획득했습니다.", L"스킬포인트", MB_OK);
                     if (check == IDOK) {
                         skillPoint++;
@@ -968,6 +1033,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         if (myMainCharacter->getHealth() < myMainCharacter->getCurrentHealth()) {
                             myMainCharacter->setCurrentHealth(myMainCharacter->getHealth());
                         }
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITDICE_0));
+                        oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+                        BitBlt(hdc, (myClientRect.right / 2 - 150), 200, 140, 160, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                        SelectObject(MemDC, oldBitmap);
+                        DeleteObject(myBitmap);
+                        DeleteDC(MemDC);
                     }
                 }
                 else {
@@ -1039,9 +1110,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
+    WCHAR eDlgBuf[256] = { 0, };
+    HWND tempDlghWnd;
     switch (message)
     {
     case WM_INITDIALOG:
+        //도움말 팁
+        wsprintfW(eDlgBuf, L"적을 처치하며 자원을 얻을수있습니다.\n적은 5스테이지마다 점점 강력해집니다.\n얻은 자원을 토대로 메뉴창에서 스탯을 찍어 더 어려운 적들을 상대할수있습니다.\n매 5스테이지마다 떠돌이 상인이 등장하여 게임에 도움이 되는 물약 또는 체력 회복약을 판매합니다."
+            "\n매 10스테이지마다 스킬포인트 물약을 지급하여 스킬을 찍을수있습니다.\n게임 진행이 어렵다면 환생을 이용할수있습니다");
+        tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_ABOUTTEXT);
+        SetWindowText(tempDlghWnd, eDlgBuf);
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
@@ -1072,6 +1150,10 @@ void ResetGameStater(HWND rs_hWnd) {
     diceNumber = 1;  // 주사위 숫자
     enemyRank = 1;  // 적 반복횟수용
     whoWanderer = 0;  // 떠돌이 상인 초기화
+    treasureNumber = 0; // 각인 초기화
+    treasurePlusAtk = 0; // 이자 초기화
+    treasureCritical = 0;  // 약점 공략 초기화
+    treasureFastFast = 0;  // 속전속결 초기화
 
     whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack()); // 누구 공격 차례인가
     flagTurn = 1;  // 속공 함수로 들어가는지 확인용 플래그 변수
@@ -1129,6 +1211,7 @@ void AttackCharaterAni(HWND hWnd, int flag) {
     int i = 0;
     int atkDamage = 0;
     if (flag == 1) {
+        
         //기사
         if (mainSkillSet == 1) {
             ///기사 액티브 스킬
@@ -1170,6 +1253,23 @@ void AttackCharaterAni(HWND hWnd, int flag) {
         else {
             atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, myMainCharacter->getDamage());
         }
+
+        //각인
+        //이자 변수 추가하기(내가 때림)
+        if (treasureNumber == 2) {
+            treasurePlusAtk++;
+            //10번이면 추가피해 주기
+            if (treasurePlusAtk >= 10) {
+                int plusAtk = 10 + (enemyRank * 2);
+                enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(plusAtk));
+                treasurePlusAtk = 0;
+            }
+        }
+        //속전 속결 딜버프
+        else if (treasureNumber == 5) {
+            atkDamage += 2;
+        }
+
         //크리티컬 확인
         if (flagCritical == 1) {
             if (assassinSkillTwo == TRUE) {
@@ -1181,7 +1281,10 @@ void AttackCharaterAni(HWND hWnd, int flag) {
         }
         //도적 백어택 초기화
         assassinSkillTwo = FALSE;
+        
         enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(atkDamage));
+        
+        
         while (i <= 10) {
             myCharacterRect.left += 5;
             myCharacterRect.right += 5;
@@ -1222,8 +1325,15 @@ void AttackCharaterAni(HWND hWnd, int flag) {
         if (enemyDice >= 4) {
             enemyMainCharacter->setCurrentHealth(enemyMainCharacter->EnemyUnitHeal(enemyRank));
         }
-
-        myMainCharacter->setCurrentHealth(myMainCharacter->ImHit(atkDamage));
+        //판금갑옷 각인 적용중
+        if (treasureNumber == 1) {
+            atkDamage -= 4;
+        }
+        //여신의 가호
+        else if (treasureNumber == 4) {
+            myTempDefenceBuf = myMainCharacter->getDefence() / 5;
+        }
+        myMainCharacter->setCurrentHealth(myMainCharacter->ImHit((atkDamage - myTempDefenceBuf)));
         while (i <= 10) {
             enemyCharacterRect.left -= 5;
             enemyCharacterRect.right -= 5;
@@ -1291,14 +1401,85 @@ void SaveStatPoint(HWND statDlghWnd, HWND mainhWnd) {
 
 }
 
+void SaveTreasurePoint(HWND treaDlghWnd, HWND mainhWnd) {
+    
+    WCHAR treasureText[128] = { 0, };
+
+    HWND tempDlghWnd;
+
+    if (treasureNumber == 0) {
+        wsprintfW(treasureText, L"착용중인 각인이 없습니다.");
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 1) {
+        wsprintfW(treasureText, L"판금갑옷 : 방어력에 영향을 받는 최종적인 피해가 4감소합니다.");
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 2) {
+        wsprintfW(treasureText, L"이자 : 각인을 얻고 10번째 공격마다 추가 피해 10+(적 강화수치 *2)를 줍니다.");
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 3) {
+        wsprintfW(treasureText, L"회복약 : 전투가 끝나면 체력을 10회복합니다.(회복량 초과시 5원을 추가로얻습니다.)");
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 4) {
+        wsprintfW(treasureText, L"여신의 가호 : 방어력 / 5 만큼 추가 방어력을 제공합니다.");
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 5) {
+        wsprintfW(treasureText, L"속전속결 : 공격력이 2, 속공 수치가 2증가합니다.");
+        treasureFastFast = 2;
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 6) {
+        wsprintfW(treasureText, L"약점 공략 : 치명타 확률이 5%증가합니다.");
+        treasureCritical = 5;
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    GameUI(hWndUi);
+
+}
+
 void GameUI(HWND hWnd) {
     WCHAR UIText[128] = { 0, };
     wsprintfW(UIText, L"현재 체력 / 최대 체력 : %d / %d \n공격력 : %d + (%d)\n방어력 : %d\n돈 : %d"
-        , myMainCharacter->getCurrentHealth(), myMainCharacter->getHealth(), myMainCharacter->getDamage(), myTempAtkBuf, myMainCharacter->getDefence(), gameMoney);
+        , myMainCharacter->getCurrentHealth(), myMainCharacter->getHealth(), (myMainCharacter->getDamage() + treasureFastFast), myTempAtkBuf, myMainCharacter->getDefence(), gameMoney);
     gameHealthStatic = CreateWindowEx(WS_EX_TRANSPARENT, L"static", UIText, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
         (myClientRect.left + 20), 20, 300, 70, hWnd, (HMENU)(HMENU)-1, NULL, NULL);
     //UpdateWindow(hWnd);
     ///->안하는 이유 자꾸 paint 불러와서 떠상일때 버그 유발함
+}
+
+void GameCharacterUI(HWND hWnd, HDC hdc) {
+    WCHAR str[32];
+    //내 캐릭 정보창
+    wsprintfW(str, L"체력 : %d", myMainCharacter->getCurrentHealth());
+    TextOut(hdc, myCharacterRect.left, myCharacterRect.bottom - 40, str, lstrlenW(str));
+    wsprintfW(str, L"속공 : %d", (myTempFastBuf + myMainCharacter->getFastAttack() + treasureFastFast));
+    TextOut(hdc, myCharacterRect.left + 100, myCharacterRect.bottom - 40, str, lstrlenW(str));
+    wsprintfW(str, L"치명타 : %d", (myMainCharacter->getCritical() + assassinCriticalUp + treasureCritical));
+    TextOut(hdc, myCharacterRect.left, myCharacterRect.bottom - 20, str, lstrlenW(str));
+    if (treasureNumber == 2) {
+        wsprintfW(str, L"이자 버프 : %d", treasurePlusAtk);
+        TextOut(hdc, myCharacterRect.left + 100, myCharacterRect.bottom - 20, str, lstrlenW(str));
+    }
+    //적 캐릭 정보창
+    wsprintfW(str, L"체력 : %d", enemyMainCharacter->getCurrentHealth());
+    TextOut(hdc, enemyCharacterRect.left, enemyCharacterRect.bottom - 40, str, lstrlenW(str));
+    wsprintfW(str, L"방어력 : %d", enemyMainCharacter->getDefence());
+    TextOut(hdc, enemyCharacterRect.left + 100, enemyCharacterRect.bottom - 40, str, lstrlenW(str));
+    wsprintfW(str, L"공격력 : %d", enemyMainCharacter->getDamage());
+    TextOut(hdc, enemyCharacterRect.left, enemyCharacterRect.bottom - 20, str, lstrlenW(str));
+    wsprintfW(str, L"속공 : %d", enemyMainCharacter->getFastAttack());
+    TextOut(hdc, enemyCharacterRect.left + 100, enemyCharacterRect.bottom - 20, str, lstrlenW(str));
 }
 
 int AttackTurn(int myFast, int enemyFast) {
@@ -1315,7 +1496,7 @@ int AttackTurn(int myFast, int enemyFast) {
             winFast = 2;
             break;
         }
-        playCharaterFast = playCharaterFast + myFast + myTempFastBuf;
+        playCharaterFast = playCharaterFast + myFast + myTempFastBuf + treasureFastFast;
         enemyCharaterFast = enemyCharaterFast + enemyFast + enemyTempFastBuf;
         if (knightPowerForce == TRUE) {
             enemyCharaterFast -= 3;
@@ -1345,7 +1526,21 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         enemyTempAtkBuf = 0;
         myTempFastBuf = 0;
         enemyTempFastBuf = 0;
+        myTempDefenceBuf = 0;
 
+        //선공 초기화
+        whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
+
+        //회복약 각인 적용
+        if (treasureNumber == 3) {
+            myMainCharacter->setCurrentHealth(myMainCharacter->getCurrentHealth() + 10);
+            //회복량 초과시
+            if (myMainCharacter->getHealth() < myMainCharacter->getCurrentHealth()) {
+                myMainCharacter->setCurrentHealth(myMainCharacter->getHealth());
+                gameMoney += 5;
+            }
+            
+        }
         // 전체 초기화
         InvalidateRect(hWnd, NULL, TRUE); 
         UpdateWindow(hWnd);
@@ -1355,6 +1550,8 @@ void HitByCharater(HWND hWnd, HDC hdc) {
     //플레이어 사망
     if (myMainCharacter->getCurrentHealth() <= 0) {
         int resetCheck;
+        //선공 초기화
+        whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
         resetCheck = MessageBox(hWnd, L"전투에서 패배하였습니다! 환생하시겠습니까?\n환생한다면 지금까지 진행한 스테이지, 스텟, 스킬을 모두 잃게되지만\n(진행한 스테이지/5)*30의 초기 자금을 받고 1스테이지로 돌아갑니다.\n확인 버튼을 누르면 환생하고 취소 버튼을 누르면 종료됩니다.", L"사망", MB_OKCANCEL);
         if (resetCheck == IDOK) {
             ResetGameStater(hWnd);
@@ -1545,7 +1742,7 @@ int CriticalHit(int flagNumber) {
     int critical;  // 크리티컬 확률 변수
     srand((unsigned int)time(NULL));
     critical = (rand() % 100) + 1;
-    if (flagNumber == 1 && critical <= (myMainCharacter->getCritical() + assassinCriticalUp)) {
+    if (flagNumber == 1 && critical <= (myMainCharacter->getCritical() + assassinCriticalUp + treasureCritical)) {
         return 1;
     }
     else if (flagNumber == 2 && critical <= (defaultCritical - 5)) {

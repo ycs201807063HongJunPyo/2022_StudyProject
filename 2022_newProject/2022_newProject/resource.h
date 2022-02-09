@@ -31,6 +31,11 @@
 #define IDB_NOOBIE_IMAGE                146
 #define IDB_ASSASSIN1_IMAGE             147
 #define IDD_WANDERER                    148
+#define IDB_BITCARD_1                   149
+#define IDB_WANDERER_1                  150
+#define IDB_BITMAP1                     151
+#define IDB_BITSKILLPOINT               151
+#define IDD_TREASURE_P                  152
 #define IDC_BUTTON_STRUP                1000
 #define IDC_BUTTON_DPUP                 1001
 #define IDC_STATIC_STRTEXT              1002
@@ -59,7 +64,6 @@
 #define IDC_BUTTON_ASSASSIN_1_3         1014
 #define IDC_STATIC_CRIPOINT             1014
 #define IDC_BUTTON_ASSASSIN_2_1         1015
-#define IDC_STATIC_STRTEXT2             1015
 #define IDC_STATIC_MONEYPOINT           1015
 #define IDC_BUTTON_ASSASSIN_2_2         1016
 #define IDC_BUTTON_ASSASSIN_2_3         1017
@@ -70,12 +74,19 @@
 #define IDC_BUTTON_WANDERER1            1024
 #define IDC_BUTTON_WANDERER2            1025
 #define IDC_BUTTON_WANDERER3            1026
+#define IDC_STATIC_ABOUTTEXT            1028
+#define IDC_STATIC_IMAGE_WANDERER       1030
+#define IDC_BUTTON_TREASURESELECT       1031
+#define IDC_STATIC_TREASUREMONEY        1032
+#define IDC_STATIC_TREASURETEXT         1033
 #define ID_32771                        32771
 #define IDSTAT                          32772
 #define ID_32773                        32773
 #define IDSKILL                         32774
 #define ID_32775                        32775
 #define IDRESETGAMESTARTER              32776
+#define ID_32777                        32777
+#define IDTREASURE                      32778
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -83,9 +94,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        149
-#define _APS_NEXT_COMMAND_VALUE         32777
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_RESOURCE_VALUE        153
+#define _APS_NEXT_COMMAND_VALUE         32779
+#define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

@@ -114,5 +114,14 @@
     <Image Include="JobImage\Assassin.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="JobImage\Card.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\Wanderer.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\SkillPoint.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

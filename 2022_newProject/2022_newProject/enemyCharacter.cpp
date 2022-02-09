@@ -53,7 +53,7 @@ void EnemyCharacter::EnemyUnit(int unitNumber, int rank) {
 		currentHealth = maxHealth;
 		damage = (rank * 4) + 4;
 		defence = rank * 2;
-		fastAttack = rank + 12;
+		fastAttack = rank + 10;
 	}
 }
 

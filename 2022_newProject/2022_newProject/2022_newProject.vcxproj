@@ -173,8 +173,11 @@
     <Image Include="EnemyImage\EnemyTanker.bmp" />
     <Image Include="GITA\CriticalMent.bmp" />
     <Image Include="JobImage\Assassin.bmp" />
+    <Image Include="JobImage\Card.bmp" />
     <Image Include="JobImage\knight.bmp" />
     <Image Include="JobImage\Noobie.bmp" />
+    <Image Include="JobImage\SkillPoint.bmp" />
+    <Image Include="JobImage\Wanderer.bmp" />
     <Image Include="small.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

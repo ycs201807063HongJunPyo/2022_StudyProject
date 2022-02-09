@@ -2,11 +2,11 @@
 
 
 MyCharacter::MyCharacter(){
-	maxHealth = 60;
+	maxHealth = 80;
 	currentHealth = maxHealth;
 	damage = 4;
 	defence = 1;
-	fastAttack = 20;
+	fastAttack = 15;
 	critical = 10;
 }
 
@@ -31,10 +31,10 @@ int MyCharacter::ImRealHit(int attackDamage) {
 }
 
 void MyCharacter::Reset() {
-	maxHealth = 60;
+	maxHealth = 80;
 	currentHealth = maxHealth;
 	damage = 4;
 	defence = 1;
-	fastAttack = 20;
+	fastAttack = 15;
 	critical = 10;
 }
