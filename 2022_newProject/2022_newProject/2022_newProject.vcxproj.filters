@@ -123,5 +123,44 @@
     <Image Include="JobImage\SkillPoint.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="JobImage\treasure\Treasure_01_1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\treasure\Treasure_02_1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\treasure\Treasure_03_1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\treasure\Treasure_04_1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\treasure\Treasure_05_1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\treasure\Treasure_06_1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\treasure\Treasure_02_2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\..\..\..\Desktop\TTest.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="EnemyImage\EnemyGun2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="EnemyImage\EnemyMachine2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="EnemyImage\EnemySpeedDog2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="EnemyImage\EnemyTanker2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="JobImage\treasure\Treasure_07_1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

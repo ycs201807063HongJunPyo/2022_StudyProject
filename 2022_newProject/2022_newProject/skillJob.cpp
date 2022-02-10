@@ -39,18 +39,6 @@ void SkillJob::KnightSkill(int skillNumber) {
 	}
 }
 
-
-
-int SkillJob::GetKnightSkill(int skillNumber) {
-	//해당 스킬이 찍혀있으면 1, 안찍혀있으면 0 반환
-	if (jobHighClass == 1 && jobSmallClass[skillNumber] == 1) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
 void SkillJob::AssassinSkill(int skillNumber) {
 	//도적 직업이고 n번째 스킬을 눌렀다면 n번째 스킬을 버프시켜준다.
 	if (jobHighClass == 2 && skillNumber == 0) {
@@ -73,11 +61,12 @@ void SkillJob::AssassinSkill(int skillNumber) {
 	}
 }
 
-
-
-int SkillJob::GetAssassinSkill(int skillNumber) {
+int SkillJob::GetPlayerSelectSkill(int skillNumber) {
 	//해당 스킬이 찍혀있으면 1, 안찍혀있으면 0 반환
-	if (jobHighClass == 2 && jobSmallClass[skillNumber] == 1) {
+	if (jobHighClass == 1 && jobSmallClass[skillNumber] == 1) {
+		return 1;
+	}
+	else if (jobHighClass == 2 && jobSmallClass[skillNumber] == 1) {
 		return 1;
 	}
 	else {

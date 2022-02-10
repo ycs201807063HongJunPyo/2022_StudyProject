@@ -27,6 +27,7 @@
 #define IDB_ENEMYFASTDOG1               140
 #define IDB_ENEMYTANKER1                141
 #define IDB_ENEMYMACHINE                142
+#define IDB_ENEMYMACHINE1               142
 #define IDB_CRITICALMENT                145
 #define IDB_NOOBIE_IMAGE                146
 #define IDB_ASSASSIN1_IMAGE             147
@@ -36,6 +37,19 @@
 #define IDB_BITMAP1                     151
 #define IDB_BITSKILLPOINT               151
 #define IDD_TREASURE_P                  152
+#define IDB_TREASURE_1_1                153
+#define IDB_TREASURE_2_1                154
+#define IDB_TREASURE_3_1                155
+#define IDB_TREASURE_4_1                156
+#define IDB_TREASURE_5_1                157
+#define IDB_TREASURE_6_1                158
+#define IDB_TREASURE_2_2                159
+#define IDB_BITBS_TEST                  160
+#define IDB_ENEMYGUN2                   161
+#define IDB_ENEMYMACHINE2               162
+#define IDB_ENEMYFASTDOG2               163
+#define IDB_ENEMYTANKER2                164
+#define IDB_TREASURE_7_1                165
 #define IDC_BUTTON_STRUP                1000
 #define IDC_BUTTON_DPUP                 1001
 #define IDC_STATIC_STRTEXT              1002
@@ -94,9 +108,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        153
+#define _APS_NEXT_RESOURCE_VALUE        166
 #define _APS_NEXT_COMMAND_VALUE         32779
-#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_CONTROL_VALUE         1035
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

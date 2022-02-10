@@ -15,10 +15,8 @@ public:
 	int AssassinSkillSelect();
 
 	void KnightSkill(int skillNumber);
-	int GetKnightSkill(int skillNumber);
-
 	void AssassinSkill(int skillNumber);
-	int GetAssassinSkill(int skillNumber);
+	int GetPlayerSelectSkill(int skillNumber);
 
 	void Reset();
 };

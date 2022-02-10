@@ -39,6 +39,7 @@ int enemyRank = 1;  // 적 반복횟수용
 int whoWanderer = 0;  // 떠돌이 상인 변수
 int treasureNumber = 0;  // 각인 변수
 int treasurePlusAtk = 0;  // 각인 이자 변수
+BOOL treasurePlusAtkBool = FALSE;
 int treasureCritical = 0;  // 각인 약점 공략
 int treasureFastFast = 0;  //각인 속전속결
 
@@ -88,12 +89,14 @@ int assassinCriticalUp = 0;  // 약점 노출 배수용
 BOOL assassinSkillTwo = FALSE;  // 백어택
 BOOL assassinSkillThree = FALSE;  // 잔상 공격
 
+
 //사용자 함수
 void ResetGameStater(HWND rs_hWnd);
 void AttackCharaterAni(HWND hWnd, int flag);
 void AttackFastSummary(HWND hWnd);
-void SaveStatPoint(HWND statDlghWnd, HWND mainhWnd);
-void SaveTreasurePoint(HWND treaDlghWnd, HWND mainhWnd);
+void SaveStatPoint(HWND statDlghWnd);
+void SaveSkillPoint(HWND skillDlghWnd);
+void SaveTreasurePoint(HWND treaDlghWnd);
 void GameUI(HWND hWnd);
 void GameCharacterUI(HWND hWnd, HDC hdc);
 int AttackTurn(int myFast, int enemyFast);
@@ -330,7 +333,7 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
         SetDlgItemInt(hDlg, 100, 100, FALSE);
         SetDlgItemInt(hDlg, 150, 150, FALSE);
         //적용된 스텟 보여주기
-        SaveStatPoint(hDlg, hWndUi);
+        SaveStatPoint(hDlg);
         return TRUE;
     
     case WM_COMMAND:
@@ -394,9 +397,11 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
                 MessageBox(hDlg, L"돈이 부족합니다!\n스테이지를 진행하며 돈을 획득해주세요", L"더 줘", MB_OK);
             }
         }
-        SaveStatPoint(hDlg, hWndUi);
-        InvalidateRect(hWndUi, &warArea, TRUE);
+        SaveStatPoint(hDlg);
+        
+        InvalidateRect(hWndUi, NULL, TRUE);
         UpdateWindow(hWndUi);
+        GameUI(hWndUi);
         break;
     }
     return 0;
@@ -421,6 +426,8 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
         wsprintfW(skillPointText, L" ");
         tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
         SetWindowText(tempDlghWnd, skillPointText);
+
+        SaveSkillPoint(hDlg);
         return TRUE;
     case WM_COMMAND:
         //창 닫기
@@ -460,7 +467,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
         if (mainSkillSet == 1) {
             //기사 스킬 0
             if (LOWORD(wParam) == IDC_BUTTON_KNIGHT_1_1) {
-                skillCheck = myMainChaCharacterSkill->GetKnightSkill(0);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(0);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 0);
                 }
@@ -472,7 +479,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //기사 스킬 1
             else if (LOWORD(wParam) == IDC_BUTTON_KNIGHT_1_2) {
-                skillCheck = myMainChaCharacterSkill->GetKnightSkill(1);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(1);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 1);
                 }
@@ -484,7 +491,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //기사 스킬 2
             else if (LOWORD(wParam) == IDC_BUTTON_KNIGHT_1_3) {
-                skillCheck = myMainChaCharacterSkill->GetKnightSkill(2);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(2);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 2);
                 }
@@ -496,7 +503,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //기사 스킬 3
             else if (LOWORD(wParam) == IDC_BUTTON_KNIGHT_2_1) {
-                skillCheck = myMainChaCharacterSkill->GetKnightSkill(3);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(3);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 3);
                 }
@@ -508,7 +515,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //기사 스킬 4
             else if (LOWORD(wParam) == IDC_BUTTON_KNIGHT_2_2) {
-                skillCheck = myMainChaCharacterSkill->GetKnightSkill(4);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(4);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 4);
                 }
@@ -520,7 +527,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //기사 스킬 5
             else if (LOWORD(wParam) == IDC_BUTTON_KNIGHT_2_3) {
-                skillCheck = myMainChaCharacterSkill->GetKnightSkill(5);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(5);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 5);
                 }
@@ -535,9 +542,10 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
         else if (mainSkillSet == 2) {
             //도적 스킬 0
             if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_1_1) {
-                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(0);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(0);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 0);
+                    
                 }
                 else {
                     wsprintfW(skillText, L"상대방 처치시 돈을 5원 더 획득합니다.");
@@ -547,9 +555,10 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //도적 스킬 1
             else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_1_2) {
-                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(1);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(1);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 1);
+                    
                 }
                 else {
                     wsprintfW(skillText, L"자신의 속공 수치가 5증가합니다.");
@@ -559,9 +568,10 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //도적 스킬 2
             else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_1_3) {
-                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(2);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(2);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 2);
+                    
                 }
                 else {
                     wsprintfW(skillText, L"자신의 치명타 확률이 5% 증가합니다.");
@@ -571,9 +581,10 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //도적 스킬 3
             else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_2_1) {
-                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(3);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(3);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 3);
+                    
                 }
                 else {
                     wsprintfW(skillText, L"현재 체력의 10이 감소하지만 현재 스테이지에서 속공이 5증가합니다.");
@@ -583,9 +594,10 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //도적 스킬 4
             else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_2_2) {
-                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(4);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(4);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 4);
+                    
                 }
                 else {
                     wsprintfW(skillText, L"2의 추가공격력을 얻고 해당 공격의 치명타 피해량이 2배 -> 3배로 증가합니다.");
@@ -595,9 +607,10 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             //도적 스킬 5
             else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_2_3) {
-                skillCheck = myMainChaCharacterSkill->GetAssassinSkill(5);
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(5);
                 if (skillCheck == 0) {
                     GetSkill(hDlg, 5);
+                    
                 }
                 else {
                     wsprintfW(skillText, L"주사위 * (자신의 속공 수치 / 10) + 공격력의 공격을 가합니다.");
@@ -606,16 +619,21 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
                 }
             }
         }
+        SaveSkillPoint(hDlg);
         wsprintfW(skillPointText, L"보유중인 스킬 포인트 : %d", skillPoint);
         tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLPOINT);
         SetWindowText(tempDlghWnd, skillPointText);
         GameUI(hWndUi);
+        InvalidateRect(hWndUi, NULL, TRUE);
+        UpdateWindow(hWndUi);
         break;
     }
     return 0;
 }
 
 //각인 다이얼로그
+RECT treasureRect;
+
 BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
     /*
@@ -626,18 +644,27 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
     -4 여신의 가호 : 방어력 / 5 만큼 추가 방어력을 제공합니다.
     -5 속전속결 : 공격력이 2, 속공 수치가 2증가합니다.
     -6 약점 공략 : 치명타 확률이 5%증가합니다.
+    -7 사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 10% 증가합니다.
         */
+    HDC MemDC;
+    HBITMAP myBitmap, oldBitmap;
     WCHAR treasureNeedMoneyText[32] = { 0, };
     HWND tempDlghWnd;
+    
     switch (iMessage) {
     case WM_INITDIALOG:
         SetDlgItemInt(hDlg, 100, 100, FALSE);
         SetDlgItemInt(hDlg, 150, 150, FALSE);
+
+        GetClientRect(hDlg, &treasureRect);
+
         wsprintfW(treasureNeedMoneyText, L"각인 변환 비용 30원");
         tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_TREASUREMONEY);
         SetWindowText(tempDlghWnd, treasureNeedMoneyText);
-        SaveTreasurePoint(hDlg, hWndUi);
+        SaveTreasurePoint(hDlg);
 
+        InvalidateRect(hDlg, NULL, TRUE);
+        UpdateWindow(hDlg);
         return TRUE;
 
     case WM_COMMAND:
@@ -649,20 +676,61 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
         //변환 눌렀을때
         else if (LOWORD(wParam) == IDC_BUTTON_TREASURESELECT) {
             if (gameMoney >= 30) {
+                srand((unsigned int)time(NULL));
                 gameMoney -= 30;
                 treasureFastFast = 0;  // 속전속결 버프 초기화
                 treasureCritical = 0;  // 약점 공략 버프 초기화
-                treasureNumber = (rand() % 6) + 1;
-                SaveTreasurePoint(hDlg, hWndUi);
+                treasureNumber = (rand() % 7) + 1;
+                SaveTreasurePoint(hDlg);
             }
             else {
                 MessageBox(hWndUi, L"각인 변환을 위한 금액이 부족합니다.", L"각인", MB_OK);
             }
-            
         }
+        UpdateWindow(hDlg);
+        InvalidateRect(hDlg, NULL, TRUE);
+
+        GameUI(hWndUi);
         InvalidateRect(hWndUi, NULL, TRUE);
         UpdateWindow(hWndUi);
         break;
+
+        //각인 이미지 그려주기
+    case WM_PAINT: {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hDlg, &ps);
+        MemDC = CreateCompatibleDC(hdc);
+        //각인 이미지
+        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITCARD_1));  //초기화
+        if (treasureNumber == 1) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_1_1));
+        }
+        else if (treasureNumber == 2) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_2_1));
+        }
+        else if (treasureNumber == 3) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_3_1));
+        }
+        else if (treasureNumber == 4) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_4_1));
+        }
+        else if (treasureNumber == 5) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_5_1));
+        }
+        else if (treasureNumber == 6) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_6_1));
+        }
+        else if (treasureNumber == 7) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_7_1));
+        }
+        oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+        BitBlt(hdc, (treasureRect.left) + 20, (treasureRect.top + 30), 60, 100, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+        SelectObject(MemDC, oldBitmap);
+        DeleteObject(myBitmap);
+
+        EndPaint(hWndUi, &ps);
+    }
+    break;
     }
     return 0;
 }
@@ -712,6 +780,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 skillBtn2 = CreateWindow(L"button", L"스킬2", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                     (myClientRect.right - 700), 600, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL2, NULL, NULL);
+
 
                 skillBtn3 = CreateWindow(L"button", L"스킬3", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                     (myClientRect.right - 550), 600, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL3, NULL, NULL);
@@ -902,7 +971,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+            hdc = BeginPaint(hWnd, &ps);
             // 차례 알려주기
             /*
             WCHAR whoTurnText[32];
@@ -946,7 +1015,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 BitBlt(hdc, (myClientRect.right / 2 - 150), 200, 100, 100, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                 SelectObject(MemDC, oldBitmap);
                 DeleteObject(myBitmap);
-
+                //치명 or 크리티컬 텍스트 출력
                 if (flagCritical == 1) {
                     myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_CRITICALMENT));
                     oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
@@ -960,6 +1029,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top - 80, 100, 50, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                     SelectObject(MemDC, oldBitmap);
                     DeleteObject(myBitmap);
+                }
+                //이자 출력
+                if (treasurePlusAtkBool == TRUE) {
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_2_2));
+                    oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+                    BitBlt(hdc, enemyCharacterRect.left+30, enemyCharacterRect.top - 70, 80, 80, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                    SelectObject(MemDC, oldBitmap);
+                    DeleteObject(myBitmap);
+                    treasurePlusAtkBool = FALSE;
                 }
             }
             //공격 끝나면 주사위 안보이게하기
@@ -1056,6 +1134,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (enemyModel == 1) {
                     MemDC = CreateCompatibleDC(hdc);
                     myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYTANKER1));
+                    if (gameStage >= 20) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYTANKER2));
+                    }
                     oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
                     BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                     SelectObject(MemDC, oldBitmap);
@@ -1065,6 +1146,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 else if (enemyModel == 3) {
                     MemDC = CreateCompatibleDC(hdc);
                     myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYGUN1));
+                    if (gameStage >= 20) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYGUN2));
+                    }
                     oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
                     BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                     SelectObject(MemDC, oldBitmap);
@@ -1077,6 +1161,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (enemyModel == 2) {
                     MemDC = CreateCompatibleDC(hdc);
                     myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYFASTDOG1));
+                    if (gameStage >= 20) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYFASTDOG2));
+                    }
                     oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
                     BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                     SelectObject(MemDC, oldBitmap);
@@ -1085,7 +1172,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 else if (enemyModel == 4) {
                     MemDC = CreateCompatibleDC(hdc);
-                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYMACHINE));
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYMACHINE1));
+                    if (gameStage >= 20) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYMACHINE2));
+                    }
                     oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
                     BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 150, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                     SelectObject(MemDC, oldBitmap);
@@ -1152,6 +1242,7 @@ void ResetGameStater(HWND rs_hWnd) {
     whoWanderer = 0;  // 떠돌이 상인 초기화
     treasureNumber = 0; // 각인 초기화
     treasurePlusAtk = 0; // 이자 초기화
+    treasurePlusAtkBool = FALSE; //이자 초기화2
     treasureCritical = 0;  // 약점 공략 초기화
     treasureFastFast = 0;  // 속전속결 초기화
 
@@ -1263,6 +1354,7 @@ void AttackCharaterAni(HWND hWnd, int flag) {
                 int plusAtk = 10 + (enemyRank * 2);
                 enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(plusAtk));
                 treasurePlusAtk = 0;
+                treasurePlusAtkBool = TRUE;
             }
         }
         //속전 속결 딜버프
@@ -1282,6 +1374,10 @@ void AttackCharaterAni(HWND hWnd, int flag) {
         //도적 백어택 초기화
         assassinSkillTwo = FALSE;
         
+        //사냥의 시간 적용
+        if (treasureNumber == 7 && (enemyMainCharacter->getHealth() /2) >= enemyMainCharacter->getCurrentHealth()) {
+            atkDamage *= 1.1;
+        }
         enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(atkDamage));
         
         
@@ -1369,7 +1465,7 @@ void AttackFastSummary(HWND hWnd) {
     flagTurn = 0;
 }
 
-void SaveStatPoint(HWND statDlghWnd, HWND mainhWnd) {
+void SaveStatPoint(HWND statDlghWnd) {
     WCHAR eDlgBuf[32] = { 0, };
     HWND tempDlghWnd;
 
@@ -1397,11 +1493,104 @@ void SaveStatPoint(HWND statDlghWnd, HWND mainhWnd) {
     wsprintfW(eDlgBuf, L"%d / cost : %d", engravingStat->criPoint, engravingStat->costArray[4]);
     tempDlghWnd = GetDlgItem(statDlghWnd, IDC_STATIC_CRIPOINT);
     SetWindowText(tempDlghWnd, eDlgBuf);
-    GameUI(hWndUi);
+    
+}
+
+void SaveSkillPoint(HWND skillDlghWnd) {
+    HWND tempDlghWnd;
+
+    //직업 확인용
+    if (mainSkillSet == 1) {
+        tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_0_0);
+        SetWindowText(tempDlghWnd, L"기사(전직)");
+    }
+    else if (mainSkillSet == 2) {
+        tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_0_0);
+        SetWindowText(tempDlghWnd, L"도적(전직)");
+    }
+    //스킬 찍혀있나 확인용
+    if (myMainChaCharacterSkill->GetPlayerSelectSkill(0) == 1) {
+        if (mainSkillSet == 1) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_1_1);
+            SetWindowText(tempDlghWnd, L"전투 태세(습득)");
+        }
+        else if(mainSkillSet == 2) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_1_1);
+            SetWindowText(tempDlghWnd, L"약탈꾼(습득)");
+        }
+    }
+    //
+    if (myMainChaCharacterSkill->GetPlayerSelectSkill(1) == 1) {
+        if (mainSkillSet == 1) {
+            //습득시 버튼 변경
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_1_2);
+            SetWindowText(tempDlghWnd, L"위압(습득)");
+        }
+        else if (mainSkillSet == 2) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_1_2);
+            SetWindowText(tempDlghWnd, L"재빠른 손놀림(습득)");
+        }
+    }
+    //
+    if (myMainChaCharacterSkill->GetPlayerSelectSkill(2) == 1) {
+        if (mainSkillSet == 1) {
+            //습득시 버튼 변경
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_1_3);
+            SetWindowText(tempDlghWnd, L"무력화(습득)");
+        }
+        else if (mainSkillSet == 2) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_1_3);
+            SetWindowText(tempDlghWnd, L"약점 포착(습득)");
+        }
+    }
+    //
+    if (myMainChaCharacterSkill->GetPlayerSelectSkill(3) == 1) {
+        if (mainSkillSet == 1) {
+            //습득시 버튼 변경
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_2_1);
+            SetWindowText(tempDlghWnd, L"신의 가호(습득)");
+        }
+        else if (mainSkillSet == 2) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_2_1);
+            SetWindowText(tempDlghWnd, L"아드레날린(습득)");
+        }
+    }
+    if (myMainChaCharacterSkill->GetPlayerSelectSkill(4) == 1) {
+        if (mainSkillSet == 1) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_2_2);
+            SetWindowText(tempDlghWnd, L"더블 어택(습득)");
+        }
+        else if (mainSkillSet == 2) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_2_2);
+            SetWindowText(tempDlghWnd, L"백어택(습득)");
+        }
+    }
+    if (myMainChaCharacterSkill->GetPlayerSelectSkill(5) == 1) {
+        if (mainSkillSet == 1) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_2_3);
+            SetWindowText(tempDlghWnd, L"예리한 일격(습득)");
+        }
+        else if (mainSkillSet == 2) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_2_3);
+            SetWindowText(tempDlghWnd, L"잔상 공격(습득)");
+        }
+    }
 
 }
 
-void SaveTreasurePoint(HWND treaDlghWnd, HWND mainhWnd) {
+void SaveTreasurePoint(HWND treaDlghWnd) {
     
     WCHAR treasureText[128] = { 0, };
 
@@ -1441,6 +1630,11 @@ void SaveTreasurePoint(HWND treaDlghWnd, HWND mainhWnd) {
     else if (treasureNumber == 6) {
         wsprintfW(treasureText, L"약점 공략 : 치명타 확률이 5%증가합니다.");
         treasureCritical = 5;
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 7) {
+        wsprintfW(treasureText, L"사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 10% 증가합니다.");
         tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
         SetWindowText(tempDlghWnd, treasureText);
     }
@@ -1738,14 +1932,14 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
 
 int CriticalHit(int flagNumber) {
     int hit = 0;  // 크리티컬 터졌나?
-    int defaultCritical = 10;  // 기본 크확
+    int defaultCritical = 5;  // 기본 크확
     int critical;  // 크리티컬 확률 변수
     srand((unsigned int)time(NULL));
     critical = (rand() % 100) + 1;
     if (flagNumber == 1 && critical <= (myMainCharacter->getCritical() + assassinCriticalUp + treasureCritical)) {
         return 1;
     }
-    else if (flagNumber == 2 && critical <= (defaultCritical - 5)) {
+    else if (flagNumber == 2 && critical <= defaultCritical) {
         return 2;
     }
     return 0;
