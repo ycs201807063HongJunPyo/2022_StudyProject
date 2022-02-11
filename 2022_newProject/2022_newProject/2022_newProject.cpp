@@ -11,6 +11,9 @@
 #include "Winuser.h"
 #include<stdlib.h>
 #include<time.h>
+//파일 입출력용 헤더
+#include<string>
+#include<fstream>
 
 #define MAX_LOADSTRING 100
 
@@ -30,6 +33,8 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 
 
 //사용자 변수
+int gameRemember = 0; //게임 킬때 돈 주기
+
 RECT myClientRect;  // 사용가능 영역 크기
 int gameStarter = 0;  // 게임 시작 유무 확인
 int gameStage = 0;  // 게임스테이지
@@ -229,7 +234,6 @@ SkillJob* myMainChaCharacterSkill = new SkillJob;
 //떠돌이 상인 다이얼로그
 BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-
     WCHAR wandererText[256] = { 0, };
     HWND tempDlghWnd;
 
@@ -319,15 +323,12 @@ BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
         EndDialog(hDlg, LOWORD(wParam));
         break;
     }
-    
-    
     return 0;
 }
 
 //스탯 다이얼로그
 BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-    
     switch (iMessage) {
     case WM_INITDIALOG:
         SetDlgItemInt(hDlg, 100, 100, FALSE);
@@ -645,7 +646,7 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
     -5 속전속결 : 공격력이 2, 속공 수치가 2증가합니다.
     -6 약점 공략 : 치명타 확률이 5%증가합니다.
     -7 사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 10% 증가합니다.
-        */
+    */
     HDC MemDC;
     HBITMAP myBitmap, oldBitmap;
     WCHAR treasureNeedMoneyText[32] = { 0, };
@@ -741,10 +742,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     HDC MemDC;
     
     HBITMAP myBitmap, oldBitmap;
+
+    //파일용 변수
+    ofstream writeFile;
+    ifstream readFile;
+    string strFile;
+    int saveCheck;
     switch (message)
     {
     case WM_CREATE:
     {
+        gameStage = 0;
+        //파일 읽어오기
+        readFile.open("gameResetMe.txt");
+        if (readFile.is_open()) {
+            strFile = readFile.get();
+            gameRemember = stoi(strFile);
+            
+            readFile.close();
+        }
         hWndUi = hWnd;
         SetWindowPos(hWnd, NULL, 500, 300, 1024, 768, 0);  // 게임창 크기 조절
         GetClientRect(hWnd, &myClientRect);  // 조절된 크기 가져오기
@@ -765,7 +781,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
             case IDC_BTN_START:
                 hdc = GetDC(hWnd);
-                MessageBox(hWnd, L"게임을 시작합니다.", L"게임시작", MB_OK);
+                //환생을 했다면
+                if (gameRemember != 0) {
+                    int resetCheck;
+                    resetCheck = MessageBox(hWnd, L"이전에 환생한 정보가 있습니다. 가지고 시작하시겠습니까?", L"게임시작", MB_OKCANCEL);
+                    if (resetCheck == IDOK) {
+                        gameMoney += gameRemember * 30;
+                    }
+                }
                 gameStarter = 1;
                 gameStage++;
                 enemyMainCharacter->EnemyUnit(gameStage, enemyRank);
@@ -780,7 +803,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 skillBtn2 = CreateWindow(L"button", L"스킬2", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                     (myClientRect.right - 700), 600, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL2, NULL, NULL);
-
 
                 skillBtn3 = CreateWindow(L"button", L"스킬3", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                     (myClientRect.right - 550), 600, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL3, NULL, NULL);
@@ -957,8 +979,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                 }
                 break;
+            case IDGAMESAVE:
+                saveCheck = MessageBox(hWnd, L"지금까지 진행한 스테이지만큼의 내용을 저장하여 게임을 재시작할때\n 초기 자금을 얻을수있습니다.", L"환생", MB_OKCANCEL);
+                if (saveCheck == IDOK) {
+                    //파일 쓰기
+                    writeFile.open("gameResetMe.txt");
+                    strFile = to_string((gameStage / 5));
+                    writeFile.write(strFile.c_str(), strFile.size());
+
+                    writeFile.close();
+                }
+                break;
             case IDM_EXIT:
             case IDC_BTN_EXIT:
+                
+                saveCheck = MessageBox(hWnd, L"지금까지 진행한 스테이지만큼의 내용을 저장하여 게임을 재시작할때\n 초기 자금을 얻을수있습니다.", L"환생", MB_OKCANCEL);
+                if (saveCheck == IDOK) {
+                    //파일 쓰기
+                    writeFile.open("gameResetMe.txt");
+                    strFile = to_string((gameStage / 5));
+                    writeFile.write(strFile.c_str(), strFile.size());
+
+                    writeFile.close();
+                }
                 DestroyWindow(hWnd);
                 break;
             default:
@@ -1289,6 +1332,7 @@ void ResetGameStater(HWND rs_hWnd) {
 
     //새로운 적 배치
     gameStage++;
+    
     enemyMainCharacter->EnemyUnit(gameStage, enemyRank);
 
     GameUI(rs_hWnd);
