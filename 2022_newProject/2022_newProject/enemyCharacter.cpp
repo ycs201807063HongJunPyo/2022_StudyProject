@@ -4,8 +4,8 @@ EnemyCharacter::EnemyCharacter() {
 	maxHealth = 25;
 	currentHealth = maxHealth;
 	damage = 3;
-	defence = 3;
-	fastAttack = 8;
+	defence = 2;
+	fastAttack = 6;
 }
 
 int EnemyCharacter::DefaultAttack(int number, int enemyDamage) {
@@ -28,8 +28,8 @@ void EnemyCharacter::EnemyUnit(int unitNumber, int rank) {
 		maxHealth = rank * 25;
 		currentHealth = maxHealth;
 		damage = rank + 2;
-		defence = (ceil(rank * 1.5)) + 1;
-		fastAttack = rank + 7;
+		defence = (ceil(rank * 1.5)) + 0;
+		fastAttack = rank + 5;
 	}
 	//¼Ó°ø À¯´Ö
 	else if (unit == 2) {
@@ -37,22 +37,22 @@ void EnemyCharacter::EnemyUnit(int unitNumber, int rank) {
 		currentHealth = maxHealth;
 		damage = rank * 2;
 		defence = rank + 1;
-		fastAttack = (ceil(rank*1.5)) + 12;
+		fastAttack = (ceil(rank*1.8)) + 14;
 	}
 	//¹ë·±½ºÇü À¯´Ö
 	else if (unit == 3) {
 		maxHealth = rank * 15;
 		currentHealth = maxHealth;
-		damage = rank * 2;
+		damage = (rank * 2) + 2;
 		defence = rank + 2;
 		fastAttack = rank + 10;
 	}
 	//º¸½ºÇü À¯´Ö
 	else if (unit == 4) {
-		maxHealth = rank * 45;
+		maxHealth = rank * 40;
 		currentHealth = maxHealth;
-		damage = (rank * 4) + 4;
-		defence = rank * 2;
+		damage = (rank * 4) + 2;
+		defence = (rank * 2) - 1;
 		fastAttack = rank + 10;
 	}
 }

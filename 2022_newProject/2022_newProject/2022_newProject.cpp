@@ -33,7 +33,6 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 
 
 //사용자 변수
-int gameRemember = 0; //게임 킬때 돈 주기
 
 RECT myClientRect;  // 사용가능 영역 크기
 int gameStarter = 0;  // 게임 시작 유무 확인
@@ -735,7 +734,7 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
     }
     return 0;
 }
-
+int gameRemember[2] = { 0, }; //게임 킬때 돈 주기, 게임 킬때 각인 기억
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
@@ -748,6 +747,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     ifstream readFile;
     string strFile;
     int saveCheck;
+
+        //treasureNumber
+    int rememberI;
+    char rememberArr[16];
     switch (message)
     {
     case WM_CREATE:
@@ -756,10 +759,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //파일 읽어오기
         readFile.open("gameResetMe.txt");
         if (readFile.is_open()) {
-            strFile = readFile.get();
-            gameRemember = stoi(strFile);
-            
+            rememberI = 0;
+            while (!readFile.eof()) {
+                readFile.getline(rememberArr, 8);
+                gameRemember[rememberI] = stoi(rememberArr);
+                rememberI++;
+            }
             readFile.close();
+        }
+        else {
+            writeFile.open("gameResetMe.txt");
+            strFile = to_string((gameStage / 5)) + "\n";
+            writeFile.write(strFile.c_str(), strFile.size());
+            strFile = to_string(treasureNumber);
+            writeFile.write(strFile.c_str(), strFile.size());
         }
         hWndUi = hWnd;
         SetWindowPos(hWnd, NULL, 500, 300, 1024, 768, 0);  // 게임창 크기 조절
@@ -782,11 +795,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDC_BTN_START:
                 hdc = GetDC(hWnd);
                 //환생을 했다면
-                if (gameRemember != 0) {
+                if (gameRemember[0] != 0 || gameRemember[1] != 0) {
                     int resetCheck;
                     resetCheck = MessageBox(hWnd, L"이전에 환생한 정보가 있습니다. 가지고 시작하시겠습니까?", L"게임시작", MB_OKCANCEL);
                     if (resetCheck == IDOK) {
-                        gameMoney += gameRemember * 30;
+                        gameMoney += gameRemember[0] * 30;
+                        treasureNumber = gameRemember[1];
                     }
                 }
                 gameStarter = 1;
@@ -966,8 +980,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 break;
             case IDTREASURE:
-                if (gameStarter == 1) {
+                if (gameStarter == 1 && (gameStage >= 20 || treasureNumber>=1)) {
                     DialogBox(hInst, MAKEINTRESOURCE(IDD_TREASURE_P), hWnd, TreasureDlgProc);
+                }
+                else {
+                    MessageBox(hWnd, L"20스테이지 이후 해금됩니다!", L"각인", MB_OK);
                 }
                 break;
             case IDRESETGAMESTARTER:
@@ -984,9 +1001,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (saveCheck == IDOK) {
                     //파일 쓰기
                     writeFile.open("gameResetMe.txt");
-                    strFile = to_string((gameStage / 5));
+                    strFile = to_string((gameStage / 5)) + "\n";
                     writeFile.write(strFile.c_str(), strFile.size());
-
+                    strFile = to_string(treasureNumber);
+                    writeFile.write(strFile.c_str(), strFile.size());
+                    
                     writeFile.close();
                 }
                 break;
@@ -996,10 +1015,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 saveCheck = MessageBox(hWnd, L"지금까지 진행한 스테이지만큼의 내용을 저장하여 게임을 재시작할때\n 초기 자금을 얻을수있습니다.", L"환생", MB_OKCANCEL);
                 if (saveCheck == IDOK) {
                     //파일 쓰기
+                    //파일 쓰기
                     writeFile.open("gameResetMe.txt");
-                    strFile = to_string((gameStage / 5));
+                    strFile = to_string((gameStage / 5)) + "\n";
                     writeFile.write(strFile.c_str(), strFile.size());
-
+                    strFile = to_string(treasureNumber);
+                    writeFile.write(strFile.c_str(), strFile.size());
                     writeFile.close();
                 }
                 DestroyWindow(hWnd);
@@ -1266,6 +1287,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
+//환생
 void ResetGameStater(HWND rs_hWnd) {
     //현재 스테이지의 /5한 값을 구한다.
     //해당 값을 money 변수에 넣는다.
@@ -1283,7 +1305,7 @@ void ResetGameStater(HWND rs_hWnd) {
     diceNumber = 1;  // 주사위 숫자
     enemyRank = 1;  // 적 반복횟수용
     whoWanderer = 0;  // 떠돌이 상인 초기화
-    treasureNumber = 0; // 각인 초기화
+    //treasureNumber = 0; // 각인 초기화 -> 각인은 초기화 안시켜줌
     treasurePlusAtk = 0; // 이자 초기화
     treasurePlusAtkBool = FALSE; //이자 초기화2
     treasureCritical = 0;  // 약점 공략 초기화
