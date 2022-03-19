@@ -162,5 +162,8 @@
     <Image Include="JobImage\treasure\Treasure_07_1.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="JobImage\Gunner.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

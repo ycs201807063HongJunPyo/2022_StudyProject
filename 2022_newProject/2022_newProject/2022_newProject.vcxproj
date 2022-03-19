@@ -179,6 +179,7 @@
     <Image Include="GITA\CriticalMent.bmp" />
     <Image Include="JobImage\Assassin.bmp" />
     <Image Include="JobImage\Card.bmp" />
+    <Image Include="JobImage\Gunner.bmp" />
     <Image Include="JobImage\knight.bmp" />
     <Image Include="JobImage\Noobie.bmp" />
     <Image Include="JobImage\SkillPoint.bmp" />

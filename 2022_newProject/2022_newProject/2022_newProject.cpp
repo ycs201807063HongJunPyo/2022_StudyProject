@@ -107,6 +107,7 @@ int AttackTurn(int myFast, int enemyFast);
 void HitByCharater(HWND hWnd, HDC hdc);
 void GetSkill(HWND g_hWnd, int skillNumber);
 int CriticalHit(int flagNumber);
+void AttackButtonClicked(int whoFlag, HWND atkButtonHWND, HDC atkButtonHDC);
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -221,7 +222,7 @@ STARTUPINFO a_si;
 PROCESS_INFORMATION a_pi;
 
 HWND gameStartBtn, gameHelpBtn, gameExitBtn;
-HWND gameHealthStatic, gameStrStatStatic, gameDpStatStatic, gameMoneyStatic;
+HWND gameStrStatStatic, gameDpStatStatic, gameMoneyStatic;
 HWND atkBtn;
 HWND skillBtn1, skillBtn2, skillBtn3;
 
@@ -240,33 +241,38 @@ BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
     case WM_INITDIALOG:
         SetDlgItemInt(hDlg, 100, 100, FALSE);
         SetDlgItemInt(hDlg, 150, 150, FALSE);
-        
+        GameUI(hWndUi);
         
         //떠돌이 상인 등장!
         if (whoWanderer == 1) {
             //체력을 소모하여 힘 스탯 3증가
-            wsprintfW(wandererText, L"반갑구만 모험가!\n근육이 그렇게 약해서야 진정한 모험을 떠날수없지\n15체력 저하 물약을 마시면 자네는 더욱 강해질수있는데 어떤가?\n아니면 15원짜리 체력회복 물약도있네");
+            wsprintfW(wandererText, L"반갑구만 모험가!\n근육이 그렇게 약해서야 진정한 모험을 떠날수없지\n15체력 저하 물약을 마시면 자네는 더욱 강해질수있는데 어떤가?\n아니면 15원짜리 체력회복 물약도있네\n\n현재 체력 -15\n힘 +3");
             tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_WANDERERTEXT);
             SetWindowText(tempDlghWnd, wandererText);
             whoWanderer = 1;
         }
         else if (whoWanderer == 2) {
             //돈을 소모하여 방어력 스탯 3증가
-            wsprintfW(wandererText, L"반갑구만 모험가!\n모험을 떠나는데 충분한 준비는했겠지?\n이 50원짜리 든든한 방패를 산다면 모험에 도움이 될텐데..\n아니면 15원짜리 체력회복 물약도있네");
+            wsprintfW(wandererText, L"반갑구만 모험가!\n모험을 떠나는데 충분한 준비는했겠지?\n이 80원짜리 든든한 방패를 산다면 모험에 도움이 될텐데..\n아니면 15원짜리 체력회복 물약도있네\n\n방어력 +3");
             tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_WANDERERTEXT);
             SetWindowText(tempDlghWnd, wandererText);
             whoWanderer = 2;
         }
         else if (whoWanderer == 3) {
             //돈을 소모하여 스킬포인트 1증가
-            wsprintfW(wandererText, L"마법학회에서 연구중인 스킬포인트 물약을 가져왔는데\n어때 한번 사보겠나? 250원이라내\n돈이 없다면 15원짜리 체력회복 물약도 있고");
+            wsprintfW(wandererText, L"마법학회에서 연구중인 스킬포인트 물약을 가져왔는데\n어때 한번 사보겠나? 250원이라내\n돈이 없다면 15원짜리 체력회복 물약도 있고\n\n스킬포인트 +1");
             tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_WANDERERTEXT);
             SetWindowText(tempDlghWnd, wandererText);
             whoWanderer = 3;
         }
-        
+        else if (whoWanderer == 4) {
+            //돈을 소모하여 최생 6증가
+            wsprintfW(wandererText, L"자네 그런 체력으로 적들을 상대로 버틸수있겠나?\n이 든든한 고기를 먹으면 최대 체력이 6증가하니 한번 먹어보라고\n아 물론 값은 받아야겠지 70원일세\n돈이 없다면 15원짜리 체력회복 물약도 있고\n\n최대, 현재 체력 +6");
+            tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_WANDERERTEXT);
+            SetWindowText(tempDlghWnd, wandererText);
+            whoWanderer = 4;
+        }
         return TRUE;
-
     case WM_COMMAND:
         //처음 버튼 눌렀을때(상인 찬성)
         if (LOWORD(wParam) == IDC_BUTTON_WANDERER1) {
@@ -282,9 +288,9 @@ BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
             }
             else if (whoWanderer == 2) {
                 //두번째 상인(돈 -> 방어력)
-                if (gameMoney >= 50) {
+                if (gameMoney >= 80) {
                     myMainCharacter->setDefence(3);
-                    gameMoney -= 50;
+                    gameMoney -= 80;
                 }
                 else {
                     MessageBox(hDlg, L"이봐! 돈도없으면서 거래는 무슨\n돈을 벌고 오게", L"무산된 거래", MB_OK);
@@ -298,6 +304,17 @@ BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
                 }
                 else {
                     MessageBox(hDlg, L"이 귀한걸 그냥 달라고하는군", L"무산된 거래", MB_OK);
+                }
+            }
+            else if (whoWanderer == 4) {
+                //세번째 상인(돈 -> 체력)
+                if (gameMoney >= 70) {
+                    myMainCharacter->setMaxHealth((myMainCharacter->getHealth() + 6));
+                    myMainCharacter->setCurrentHealth((myMainCharacter->getCurrentHealth() + 6));
+                    gameMoney -= 70;
+                }
+                else {
+                    MessageBox(hDlg, L"아무리 그래도 이건 아닌것같군", L"무산된 거래", MB_OK);
                 }
             }
         }
@@ -319,6 +336,7 @@ BOOL CALLBACK WandererDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
             EndDialog(hDlg, LOWORD(wParam));
         }
         //끝내기
+        GameUI(hWndUi);
         EndDialog(hDlg, LOWORD(wParam));
         break;
     }
@@ -398,6 +416,7 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
             }
         }
         SaveStatPoint(hDlg);
+        
         
         InvalidateRect(hWndUi, NULL, TRUE);
         UpdateWindow(hWndUi);
@@ -623,9 +642,10 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
         wsprintfW(skillPointText, L"보유중인 스킬 포인트 : %d", skillPoint);
         tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLPOINT);
         SetWindowText(tempDlghWnd, skillPointText);
-        GameUI(hWndUi);
+        
         InvalidateRect(hWndUi, NULL, TRUE);
         UpdateWindow(hWndUi);
+        GameUI(hWndUi);
         break;
     }
     return 0;
@@ -644,7 +664,7 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
     -4 여신의 가호 : 방어력 / 5 만큼 추가 방어력을 제공합니다.
     -5 속전속결 : 공격력이 2, 속공 수치가 2증가합니다.
     -6 약점 공략 : 치명타 확률이 5%증가합니다.
-    -7 사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 10% 증가합니다.
+    -7 사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 20% 증가합니다.
     */
     HDC MemDC;
     HBITMAP myBitmap, oldBitmap;
@@ -653,7 +673,6 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
     
     switch (iMessage) {
     case WM_INITDIALOG:
-        SetDlgItemInt(hDlg, 100, 100, FALSE);
         SetDlgItemInt(hDlg, 150, 150, FALSE);
 
         GetClientRect(hDlg, &treasureRect);
@@ -690,9 +709,9 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
         UpdateWindow(hDlg);
         InvalidateRect(hDlg, NULL, TRUE);
 
-        GameUI(hWndUi);
         InvalidateRect(hWndUi, NULL, TRUE);
         UpdateWindow(hWndUi);
+        GameUI(hWndUi);
         break;
 
         //각인 이미지 그려주기
@@ -739,7 +758,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
     HDC MemDC;
-    
     HBITMAP myBitmap, oldBitmap;
 
     //파일용 변수
@@ -750,7 +768,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         //treasureNumber
     int rememberI;
-    char rememberArr[16];
+    char rememberArr[8];
+
+    //떠상 물약
+    int enemyModel = gameStage % 5;
+    int getSkill = gameStage % 10;
+    int check;
+
     switch (message)
     {
     case WM_CREATE:
@@ -841,6 +865,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 warArea.right = myClientRect.right;
                 warArea.top = 190;
                 warArea.bottom = 520;
+
                 GameUI(hWnd);
                 InvalidateRect(hWnd, &warArea, TRUE);
                 ReleaseDC(hWnd, hdc);
@@ -853,22 +878,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //플레이어 평타
                 if (whoTurn == 1) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(1);
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(1, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(2);
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(2, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
-                GameUI(hWnd);
             }
                 break;
             case IDC_BTN_SKILL1: {
@@ -895,75 +913,51 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(2);
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(2, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
-                GameUI(hWnd);
             }
                 break;
             case IDC_BTN_SKILL2: {
                 if (whoTurn == 1 && mainSkillSet == 1) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(1);
                     knightDoubleAttack = TRUE;
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(1, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
                 else if (whoTurn == 1 && mainSkillSet == 2) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(1);
                     assassinSkillTwo = TRUE;
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(1, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(2);
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(2, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
-                GameUI(hWnd);
             }
                 break;
             case IDC_BTN_SKILL3: {
                 if (whoTurn == 1 && mainSkillSet == 1) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(1);
                     knightIncisiveAttack = TRUE;
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(1, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
                 else if (whoTurn == 1 && mainSkillSet == 2) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(1);
                     assassinSkillThree = TRUE;
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(1, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
                 //적 공격
                 if (whoTurn == 2 && gameStarter == 1) {
                     hdc = GetDC(hWnd);
-                    flagCritical = 0;
-                    flagCritical = CriticalHit(2);
-                    AttackFastSummary(hWnd);
-                    HitByCharater(hWnd, hdc);
+                    AttackButtonClicked(2, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
-                GameUI(hWnd);
             }
                 break;
             case IDM_ABOUT:
@@ -1005,16 +999,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     writeFile.write(strFile.c_str(), strFile.size());
                     strFile = to_string(treasureNumber);
                     writeFile.write(strFile.c_str(), strFile.size());
-                    
                     writeFile.close();
                 }
                 break;
             case IDM_EXIT:
             case IDC_BTN_EXIT:
-                
                 saveCheck = MessageBox(hWnd, L"지금까지 진행한 스테이지만큼의 내용을 저장하여 게임을 재시작할때\n 초기 자금을 얻을수있습니다.", L"환생", MB_OKCANCEL);
                 if (saveCheck == IDOK) {
-                    //파일 쓰기
                     //파일 쓰기
                     writeFile.open("gameResetMe.txt");
                     strFile = to_string((gameStage / 5)) + "\n";
@@ -1118,136 +1109,105 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteDC(MemDC);
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
             
-            //내 캐릭, 적 캐릭 인게임 정보창
+            //게임 시작 + 캐릭 이미지
             if (gameStarter == 1) {
                 GameCharacterUI(hWnd, hdc);
-            }
-            //내 캐릭터 기본 보이기
-            //기사 이미지 보여주기
-            if (gameStarter == 1 && mainSkillSet == 1) {
+                //내 캐릭터 기본 보이기
                 MemDC = CreateCompatibleDC(hdc);
-                myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_KNIGHT1_IMAGE));
+                //기사 이미지 보여주기
+                if (mainSkillSet == 1) {
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_KNIGHT1_IMAGE));
+
+                }
+                //도적 이미지 보여주기
+                else if (mainSkillSet == 2) {
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ASSASSIN1_IMAGE));
+                }
+                //기본 이미지
+                else{
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_NOOBIE_IMAGE));
+                }
                 oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
                 BitBlt(hdc, myCharacterRect.left, myCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                 SelectObject(MemDC, oldBitmap);
                 DeleteObject(myBitmap);
                 DeleteDC(MemDC);
-            }
-            //도적 이미지 보여주기
-            else if (gameStarter == 1 && mainSkillSet == 2) {
-                MemDC = CreateCompatibleDC(hdc);
-                myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ASSASSIN1_IMAGE));
-                oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
-                BitBlt(hdc, myCharacterRect.left, myCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
-                SelectObject(MemDC, oldBitmap);
-                DeleteObject(myBitmap);
-                DeleteDC(MemDC);
-            }
-            //기본 이미지
-            else if (gameStarter == 1 && mainSkillSet == 0) {
-                MemDC = CreateCompatibleDC(hdc);
-                myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_NOOBIE_IMAGE));
-                oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
-                BitBlt(hdc, myCharacterRect.left, myCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
-                SelectObject(MemDC, oldBitmap);
-                DeleteObject(myBitmap);
-                DeleteDC(MemDC);
-            }
-            
-            int enemyModel = gameStage % 5;
-            int getSkill = gameStage % 10;
-            int check;
-            //떠상 물약
-            if (gameStarter == 1 && enemyModel == 0) {
-                enemyRank++;
-                if (getSkill == 0) {
-                    MemDC = CreateCompatibleDC(hdc);
-                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITSKILLPOINT));
-                    oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
-                    BitBlt(hdc, (myClientRect.right / 2 - 150), 200, 140, 160, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
-                    SelectObject(MemDC, oldBitmap);
-                    DeleteObject(myBitmap);
-                    DeleteDC(MemDC);
-                    check = MessageBox(hWnd, L"신비로운 힘이 당신 주변에 가까워집니다.\n체력을 15회복합니다.\n스킬 포인트를 획득했습니다.", L"스킬포인트", MB_OK);
-                    if (check == IDOK) {
-                        skillPoint++;
-                        myMainCharacter->setCurrentHealth(myMainCharacter->getCurrentHealth() + 15);
-                        if (myMainCharacter->getHealth() < myMainCharacter->getCurrentHealth()) {
-                            myMainCharacter->setCurrentHealth(myMainCharacter->getHealth());
-                        }
-                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITDICE_0));
+
+                //떠상 물약
+                enemyModel = gameStage % 5;
+                getSkill = gameStage % 10;
+                if (enemyModel == 0) {
+                    enemyRank++;
+                    if (getSkill == 0) {
+                        MemDC = CreateCompatibleDC(hdc);
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITSKILLPOINT));
                         oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
                         BitBlt(hdc, (myClientRect.right / 2 - 150), 200, 140, 160, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
                         SelectObject(MemDC, oldBitmap);
                         DeleteObject(myBitmap);
                         DeleteDC(MemDC);
+                        check = MessageBox(hWnd, L"신비로운 힘이 당신 주변에 가까워집니다.\n체력을 15회복합니다.\n스킬 포인트를 획득했습니다.", L"스킬포인트", MB_OK);
+                        if (check == IDOK) {
+                            skillPoint++;
+                            myMainCharacter->setCurrentHealth(myMainCharacter->getCurrentHealth() + 15);
+                            if (myMainCharacter->getHealth() < myMainCharacter->getCurrentHealth()) {
+                                myMainCharacter->setCurrentHealth(myMainCharacter->getHealth());
+                            }
+                            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITDICE_0));
+                            oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+                            BitBlt(hdc, (myClientRect.right / 2 - 150), 200, 140, 160, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                            SelectObject(MemDC, oldBitmap);
+                            DeleteObject(myBitmap);
+                            DeleteDC(MemDC);
+                        }
+                    }
+                    else {
+                        //어느 상인이 나오나?
+                        whoWanderer = (rand() % 4) + 1;
+                        //떠상 다이얼로그
+                        DialogBox(hInst, MAKEINTRESOURCE(IDD_WANDERER), hWnd, WandererDlgProc);
+                    }
+                    //다음 스테이지로 넘겨주고 UI 새로고침해주기
+                    HitByCharater(hWnd, hdc);
+                    GameUI(hWnd);
+                }
+                //적 모형
+                else if (enemyModel == 1 || enemyModel == 3) {
+                    MemDC = CreateCompatibleDC(hdc);
+                    if (enemyModel == 1) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYTANKER1));
+                        if (gameStage >= 20) {
+                            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYTANKER2));
+                        }
+                    }
+                    else if (enemyModel == 3) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYGUN1));
+                        if (gameStage >= 20) {
+                            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYGUN2));
+                        }
                     }
                 }
-                else {
-                    //어느 상인이 나오나?
-                    whoWanderer = (rand() % 3) + 1;
-                    //떠상 다이얼로그
-                    DialogBox(hInst, MAKEINTRESOURCE(IDD_WANDERER), hWnd, WandererDlgProc);
+                else if (enemyModel == 2 || enemyModel == 4) {
+                    MemDC = CreateCompatibleDC(hdc);
+                    if (enemyModel == 2) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYFASTDOG1));
+                        if (gameStage >= 20) {
+                            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYFASTDOG2));
+                        }
+                    }
+                    else if (enemyModel == 4) {
+                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYMACHINE1));
+                        if (gameStage >= 20) {
+                            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYMACHINE2));
+                        }
+                    }
                 }
-                //다음 스테이지로 넘겨주고 UI 새로고침해주기
-                HitByCharater(hWnd, hdc);
-                GameUI(hWnd);
+                oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+                BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 150, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                SelectObject(MemDC, oldBitmap);
+                DeleteObject(myBitmap);
+                DeleteDC(MemDC);
             }
-            //적 모형
-            else if (gameStarter == 1 && enemyModel == 1 || enemyModel == 3) {
-                if (enemyModel == 1) {
-                    MemDC = CreateCompatibleDC(hdc);
-                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYTANKER1));
-                    if (gameStage >= 20) {
-                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYTANKER2));
-                    }
-                    oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
-                    BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
-                    SelectObject(MemDC, oldBitmap);
-                    DeleteObject(myBitmap);
-                    DeleteDC(MemDC);
-                }
-                else if (enemyModel == 3) {
-                    MemDC = CreateCompatibleDC(hdc);
-                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYGUN1));
-                    if (gameStage >= 20) {
-                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYGUN2));
-                    }
-                    oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
-                    BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
-                    SelectObject(MemDC, oldBitmap);
-                    DeleteObject(myBitmap);
-                    DeleteDC(MemDC);
-                }
-                //Rectangle(hdc, enemyCharacterRect.left, enemyCharacterRect.top, enemyCharacterRect.right, enemyCharacterRect.bottom);
-            }
-            else if (gameStarter == 1 && enemyModel == 2 || enemyModel == 4) {
-                if (enemyModel == 2) {
-                    MemDC = CreateCompatibleDC(hdc);
-                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYFASTDOG1));
-                    if (gameStage >= 20) {
-                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYFASTDOG2));
-                    }
-                    oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
-                    BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 100, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
-                    SelectObject(MemDC, oldBitmap);
-                    DeleteObject(myBitmap);
-                    DeleteDC(MemDC);
-                }
-                else if (enemyModel == 4) {
-                    MemDC = CreateCompatibleDC(hdc);
-                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYMACHINE1));
-                    if (gameStage >= 20) {
-                        myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMYMACHINE2));
-                    }
-                    oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
-                    BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top, 150, 150, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
-                    SelectObject(MemDC, oldBitmap);
-                    DeleteObject(myBitmap);
-                    DeleteDC(MemDC);
-                }
-            }
-            
             EndPaint(hWnd, &ps);
         }
         break;
@@ -1442,7 +1402,7 @@ void AttackCharaterAni(HWND hWnd, int flag) {
         
         //사냥의 시간 적용
         if (treasureNumber == 7 && (enemyMainCharacter->getHealth() /2) >= enemyMainCharacter->getCurrentHealth()) {
-            atkDamage *= 1.1;
+            atkDamage = atkDamage * 1.2;
         }
         enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(atkDamage));
         
@@ -1605,7 +1565,6 @@ void SaveSkillPoint(HWND skillDlghWnd) {
     if (myMainChaCharacterSkill->GetPlayerSelectSkill(2) == 1) {
         if (mainSkillSet == 1) {
             //습득시 버튼 변경
-            //습득시 버튼 변경
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_1_3);
             SetWindowText(tempDlghWnd, L"무력화(습득)");
         }
@@ -1618,7 +1577,6 @@ void SaveSkillPoint(HWND skillDlghWnd) {
     //
     if (myMainChaCharacterSkill->GetPlayerSelectSkill(3) == 1) {
         if (mainSkillSet == 1) {
-            //습득시 버튼 변경
             //습득시 버튼 변경
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_KNIGHT_2_1);
             SetWindowText(tempDlghWnd, L"신의 가호(습득)");
@@ -1694,13 +1652,13 @@ void SaveTreasurePoint(HWND treaDlghWnd) {
         SetWindowText(tempDlghWnd, treasureText);
     }
     else if (treasureNumber == 6) {
-        wsprintfW(treasureText, L"약점 공략 : 치명타 확률이 5%증가합니다.");
-        treasureCritical = 5;
+        wsprintfW(treasureText, L"약점 공략 : 치명타 확률이 7%증가합니다.");
+        treasureCritical = 7;
         tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
         SetWindowText(tempDlghWnd, treasureText);
     }
     else if (treasureNumber == 7) {
-        wsprintfW(treasureText, L"사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 10% 증가합니다.");
+        wsprintfW(treasureText, L"사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 20% 증가합니다.");
         tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
         SetWindowText(tempDlghWnd, treasureText);
     }
@@ -1709,12 +1667,13 @@ void SaveTreasurePoint(HWND treaDlghWnd) {
 }
 
 void GameUI(HWND hWnd) {
-    WCHAR UIText[128] = { 0, };
-    wsprintfW(UIText, L"현재 체력 / 최대 체력 : %d / %d \n공격력 : %d + (%d)\n방어력 : %d\n돈 : %d"
-        , myMainCharacter->getCurrentHealth(), myMainCharacter->getHealth(), (myMainCharacter->getDamage() + treasureFastFast), myTempAtkBuf, myMainCharacter->getDefence(), gameMoney);
-    gameHealthStatic = CreateWindowEx(WS_EX_TRANSPARENT, L"static", UIText, WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        (myClientRect.left + 20), 20, 300, 70, hWnd, (HMENU)(HMENU)-1, NULL, NULL);
-    //UpdateWindow(hWnd);
+    WCHAR UIText[256] = { 0, };
+    HDC hdc = GetDC(hWnd);
+    wsprintfW(UIText, L"현재 체력 / 최대 체력 : %d / %d ", myMainCharacter->getCurrentHealth(), myMainCharacter->getHealth());
+    TextOut(hdc, 5, 5, UIText, lstrlenW(UIText));
+    wsprintfW(UIText, L"공격력 : %d + (%d)   방어력 : %d   돈 : %d",(myMainCharacter->getDamage() + treasureFastFast), myTempAtkBuf, myMainCharacter->getDefence(), gameMoney);
+    TextOut(hdc, 5, 25, UIText, lstrlenW(UIText));
+    ReleaseDC(hWnd, hdc);
     ///->안하는 이유 자꾸 paint 불러와서 떠상일때 버그 유발함
 }
 
@@ -1729,6 +1688,10 @@ void GameCharacterUI(HWND hWnd, HDC hdc) {
     TextOut(hdc, myCharacterRect.left, myCharacterRect.bottom - 20, str, lstrlenW(str));
     if (treasureNumber == 2) {
         wsprintfW(str, L"이자 버프 : %d", treasurePlusAtk);
+        TextOut(hdc, myCharacterRect.left + 100, myCharacterRect.bottom - 20, str, lstrlenW(str));
+    }
+    if (treasureNumber == 7 && (enemyMainCharacter->getHealth() / 2) >= enemyMainCharacter->getCurrentHealth()) {
+        wsprintfW(str, L"사냥의 시간 적용됨");
         TextOut(hdc, myCharacterRect.left + 100, myCharacterRect.bottom - 20, str, lstrlenW(str));
     }
     //적 캐릭 정보창
@@ -1998,9 +1961,8 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
 
 int CriticalHit(int flagNumber) {
     int hit = 0;  // 크리티컬 터졌나?
-    int defaultCritical = 5;  // 기본 크확
+    int defaultCritical = 5;  // 적 기본 크확
     int critical;  // 크리티컬 확률 변수
-    srand((unsigned int)time(NULL));
     critical = (rand() % 100) + 1;
     if (flagNumber == 1 && critical <= (myMainCharacter->getCritical() + assassinCriticalUp + treasureCritical)) {
         return 1;
@@ -2009,4 +1971,21 @@ int CriticalHit(int flagNumber) {
         return 2;
     }
     return 0;
+}
+
+void AttackButtonClicked(int whoFlag, HWND atkButtonHWND, HDC atkButtonHDC) {
+    //whoFlag 1 -> 플레이어 / whoFlag 2 -> 적
+    if (whoFlag == 1) {
+        flagCritical = 0;
+        flagCritical = CriticalHit(1);
+        AttackFastSummary(atkButtonHWND);
+        HitByCharater(atkButtonHWND, atkButtonHDC);
+    }
+    else {
+        flagCritical = 0;
+        flagCritical = CriticalHit(2);
+        AttackFastSummary(atkButtonHWND);
+        HitByCharater(atkButtonHWND, atkButtonHDC);
+    }
+    GameUI(atkButtonHWND);
 }
