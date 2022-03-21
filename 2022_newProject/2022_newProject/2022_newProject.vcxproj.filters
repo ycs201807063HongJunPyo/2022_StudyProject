@@ -165,5 +165,11 @@
     <Image Include="JobImage\Gunner.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="GITA\Bloodsucking.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="GITA\NormalAttack.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

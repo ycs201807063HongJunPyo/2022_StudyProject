@@ -176,7 +176,9 @@
     <Image Include="EnemyImage\EnemySpeedDog2.bmp" />
     <Image Include="EnemyImage\EnemyTanker.bmp" />
     <Image Include="EnemyImage\EnemyTanker2.bmp" />
+    <Image Include="GITA\Bloodsucking.bmp" />
     <Image Include="GITA\CriticalMent.bmp" />
+    <Image Include="GITA\NormalAttack.bmp" />
     <Image Include="JobImage\Assassin.bmp" />
     <Image Include="JobImage\Card.bmp" />
     <Image Include="JobImage\Gunner.bmp" />

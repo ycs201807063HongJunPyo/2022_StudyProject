@@ -51,6 +51,9 @@
 #define IDB_ENEMYTANKER2                164
 #define IDB_TREASURE_7_1                165
 #define IDB_GUNNER1_IMAGE               166
+#define IDB_ENEMYBLOOD                  167
+#define IDB_ENEMY_IMG_BLOOD             167
+#define IDB_ENEMY_IMG_NORMALATK         168
 #define IDC_BUTTON_STRUP                1000
 #define IDC_BUTTON_DPUP                 1001
 #define IDC_STATIC_STRTEXT              1002
@@ -112,7 +115,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        167
+#define _APS_NEXT_RESOURCE_VALUE        169
 #define _APS_NEXT_COMMAND_VALUE         32782
 #define _APS_NEXT_CONTROL_VALUE         1035
 #define _APS_NEXT_SYMED_VALUE           110

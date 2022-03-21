@@ -15,6 +15,8 @@
 #include<string>
 #include<fstream>
 
+#include<time.h>
+
 #define MAX_LOADSTRING 100
 
 #define IDC_BTN_START 5000  //시작 버튼 ID
@@ -26,11 +28,15 @@
 #define IDC_BTN_SKILL2 5005  //스킬2 버튼 ID
 #define IDC_BTN_SKILL3 5006  //스킬3 버튼 ID
 
+#define IDC_BTN_BANK 5007  //은행 버튼 ID
+
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 
+//타이머용
+#define TIMER_ID_1      1  //5분 지나면 돈주기
 
 //사용자 변수
 
@@ -46,6 +52,8 @@ int treasurePlusAtk = 0;  // 각인 이자 변수
 BOOL treasurePlusAtkBool = FALSE;
 int treasureCritical = 0;  // 각인 약점 공략
 int treasureFastFast = 0;  //각인 속전속결
+int enemyAtkVar = 0;  //적 공격 이미지(평타, 흡혈 구분 평타1, 흡혈2)
+int bankMoney;  //저축된 금액
 
 int whoTurn = 0; // 누구 공격 차례인가
 int flagTurn = 1;  // 속공 함수로 들어가는지 확인용 플래그 변수
@@ -221,7 +229,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 STARTUPINFO a_si;
 PROCESS_INFORMATION a_pi;
 
-HWND gameStartBtn, gameHelpBtn, gameExitBtn;
+HWND gameStartBtn, gameHelpBtn, gameExitBtn, gameBankBtn;
 HWND gameStrStatStatic, gameDpStatStatic, gameMoneyStatic;
 HWND atkBtn;
 HWND skillBtn1, skillBtn2, skillBtn3;
@@ -807,6 +815,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             (myClientRect.left + 50), 300, 150, 100, hWnd, (HMENU)IDC_BTN_HELP, NULL, NULL);
         gameExitBtn = CreateWindow(L"button", L"종    료", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
             (myClientRect.left + 50), 450, 150, 100, hWnd, (HMENU)IDC_BTN_EXIT, NULL, NULL);
+        gameBankBtn = CreateWindow(L"button", L"은행", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+            (myClientRect.right-50), 50, 30, 30, hWnd, (HMENU)IDC_BTN_BANK, NULL, NULL);
+        ShowWindow(gameBankBtn, SW_HIDE);
         playCharaterFast = 0;
         enemyCharaterFast = 0;
     }
@@ -827,6 +838,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         treasureNumber = gameRemember[1];
                     }
                 }
+                SetTimer(hWnd, TIMER_ID_1, 300000, NULL);
                 gameStarter = 1;
                 gameStage++;
                 enemyMainCharacter->EnemyUnit(gameStage, enemyRank);
@@ -873,7 +885,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDC_BTN_HELP:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
-
+            case IDC_BTN_BANK:
+                gameMoney += bankMoney;
+                bankMoney = 0;
+                ShowWindow(gameBankBtn, SW_HIDE);
+                InvalidateRect(hWnd, NULL, TRUE);
+                UpdateWindow(hWnd);
+                GameUI(hWnd);
+                break;
             case IDC_BTN_ATTACK: {
                 //플레이어 평타
                 if (whoTurn == 1) {
@@ -1020,29 +1039,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
         }
-
         break;
+        case WM_TIMER:
+            if (TIMER_ID_1 == wParam && gameStarter == 1 && enemyModel != 0) {
+                KillTimer(hWnd, TIMER_ID_1);                    // 1번을 정지
+                SetTimer(hWnd, TIMER_ID_1, 300000, NULL);
+
+                ShowWindow(gameBankBtn, SW_SHOW);
+
+                GameUI(hWnd);
+            }
+            break;
     case WM_PAINT:
         {
             
             PAINTSTRUCT ps;
             hdc = BeginPaint(hWnd, &ps);
-            // 차례 알려주기
-            /*
-            WCHAR whoTurnText[32];
-            if (gameStarter == 1 && whoTurn == 1 && drawDice == FALSE) {
-                wsprintfW(whoTurnText, L"플레이어 차례입니다.");
-                TextOut(hdc, (myClientRect.right / 2 - 150), 250, whoTurnText, lstrlenW(whoTurnText));
-            }
-            else if (gameStarter == 1 && whoTurn == 2 && drawDice == FALSE) {
-                wsprintfW(whoTurnText, L"적 차례입니다.");
-                TextOut(hdc, (myClientRect.right / 2 - 150), 250, whoTurnText, lstrlenW(whoTurnText));
-            }
-            else {
-                wsprintfW(whoTurnText, L"");
-                TextOut(hdc, (myClientRect.right / 2 - 150), 250, whoTurnText, lstrlenW(whoTurnText));
-            }
-            */
 
             MemDC = CreateCompatibleDC(hdc);
             //공격시 주사위 보이게하기
@@ -1085,6 +1097,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     SelectObject(MemDC, oldBitmap);
                     DeleteObject(myBitmap);
                 }
+                //적 기본 공격, 흡혈 이미지 출력
+                if (enemyAtkVar == 1) {
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMY_IMG_NORMALATK));
+                    
+                }
+                else if (enemyAtkVar == 2) {
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ENEMY_IMG_BLOOD));
+                }
+                oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
+                if (flagCritical == 2) {
+                    BitBlt(hdc, enemyCharacterRect.left + 120, enemyCharacterRect.top - 80, 20, 20, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                }
+                BitBlt(hdc, enemyCharacterRect.left, enemyCharacterRect.top - 80, 20, 20, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
+                SelectObject(MemDC, oldBitmap);
+                DeleteObject(myBitmap);
                 //이자 출력
                 if (treasurePlusAtkBool == TRUE) {
                     myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_2_2));
@@ -1270,6 +1297,8 @@ void ResetGameStater(HWND rs_hWnd) {
     treasurePlusAtkBool = FALSE; //이자 초기화2
     treasureCritical = 0;  // 약점 공략 초기화
     treasureFastFast = 0;  // 속전속결 초기화
+    enemyAtkVar = 0;  //적 공격 이미지(평타, 흡혈 구분 평타1, 흡혈2)
+    bankMoney;  //저축된 금액
 
     whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack()); // 누구 공격 차례인가
     flagTurn = 1;  // 속공 함수로 들어가는지 확인용 플래그 변수
@@ -1445,7 +1474,13 @@ void AttackCharaterAni(HWND hWnd, int flag) {
         enemyDice = (rand() % 6); //총 6개 패턴 넣기
         ///그중 0~3는 버리는걸로 아무것도 안넣고 4는 체력회복 5는 스킬로 넣어주기(지금은 스킬 없으니 4~5가 회복)
         if (enemyDice >= 4) {
+            //흡혈
+            enemyAtkVar = 2;
             enemyMainCharacter->setCurrentHealth(enemyMainCharacter->EnemyUnitHeal(enemyRank));
+        }
+        else {
+            //평타
+            enemyAtkVar = 1;
         }
         //판금갑옷 각인 적용중
         if (treasureNumber == 1) {
@@ -1473,6 +1508,7 @@ void AttackCharaterAni(HWND hWnd, int flag) {
             Sleep(10);
             i++;
         }
+        enemyAtkVar = 0;  //초기화
     }
     
     //잠시 대기!
@@ -1739,9 +1775,10 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         enemyMainCharacter->EnemyUnit(gameStage, enemyRank);
         if (assassinSkillOne == TRUE) {
             gameMoney += 5;
+            bankMoney += 5;
         }
         gameMoney = gameMoney + 10 + (enemyRank * 10);
-        
+        bankMoney = bankMoney + 10 + (enemyRank * 10);
         //속공 초기화 + 스테이지 버프 초기화
         enemyCharaterFast = 0;
         playCharaterFast = 0;
