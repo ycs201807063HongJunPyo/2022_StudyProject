@@ -1,5 +1,4 @@
 ﻿// 2022_newProject.cpp : 애플리케이션에 대한 진입점을 정의합니다.
-//
 
 #include "framework.h"
 #include "2022_newProject.h"
@@ -100,7 +99,10 @@ BOOL assassinSkillOne = FALSE;  // 약탈꾼
 int assassinCriticalUp = 0;  // 약점 노출 배수용
 BOOL assassinSkillTwo = FALSE;  // 백어택
 BOOL assassinSkillThree = FALSE;  // 잔상 공격
-
+///스킬 마나 확인용
+BOOL skill_1_text = FALSE;  //첫번째 스킬 찍었나
+BOOL skill_2_text = FALSE;  //두번째 스킬 찍었나
+BOOL skill_3_text = FALSE;  //세번째 스킬 찍었나
 
 //사용자 함수
 void ResetGameStater(HWND rs_hWnd);
@@ -423,6 +425,17 @@ BOOL CALLBACK StatDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam
                 MessageBox(hDlg, L"돈이 부족합니다!\n스테이지를 진행하며 돈을 획득해주세요", L"더 줘", MB_OK);
             }
         }
+        //마나 스텟 찍었을때
+        else if (LOWORD(wParam) == IDC_BUTTON_MANAUP) {
+            if (gameMoney >= engravingStat->costArray[5]) {
+                gameMoney -= engravingStat->costArray[5];
+                engravingStat->UpManaPoint();
+                myMainCharacter->setMana(1);
+            }
+            else {
+                MessageBox(hDlg, L"돈이 부족합니다!\n스테이지를 진행하며 돈을 획득해주세요", L"더 줘", MB_OK);
+            }
+        }
         SaveStatPoint(hDlg);
         
         
@@ -458,7 +471,6 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
         return TRUE;
     case WM_COMMAND:
         //창 닫기
-        
         if (LOWORD(wParam) == IDCANCEL || LOWORD(wParam) == IDCLOSE)
         {
             EndDialog(hDlg, LOWORD(wParam));
@@ -606,7 +618,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
                     SetWindowText(tempDlghWnd, skillText);
                 }
             }
-            //도적 스킬 3
+            //도적 스킬 3(아드레날린)
             else if (LOWORD(wParam) == IDC_BUTTON_ASSASSIN_2_1) {
                 skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(3);
                 if (skillCheck == 0) {
@@ -614,7 +626,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
                     
                 }
                 else {
-                    wsprintfW(skillText, L"현재 체력의 10이 감소하지만 현재 스테이지에서 속공이 5증가합니다.");
+                    wsprintfW(skillText, L"현재 체력의 5이 감소하지만 현재 스테이지에서 속공이 5증가합니다.");
                     tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
                     SetWindowText(tempDlghWnd, skillText);
                 }
@@ -846,16 +858,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ShowWindow(gameHelpBtn, SW_HIDE);
                 ShowWindow(gameExitBtn, SW_HIDE);
                 atkBtn = CreateWindow(L"button", L"공격", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                    (myClientRect.right - 200), 600, 100, 100, hWnd, (HMENU)IDC_BTN_ATTACK, NULL, NULL);
+                    (myClientRect.right - 200), 550, 100, 100, hWnd, (HMENU)IDC_BTN_ATTACK, NULL, NULL);
                 //스킬 버튼 일단 가려주고 찍으면 보이게하기
                 skillBtn1 = CreateWindow(L"button", L"스킬1", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                    (myClientRect.right - 850), 600, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL1, NULL, NULL);
+                    (myClientRect.right - 850), 550, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL1, NULL, NULL);
 
                 skillBtn2 = CreateWindow(L"button", L"스킬2", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                    (myClientRect.right - 700), 600, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL2, NULL, NULL);
+                    (myClientRect.right - 700), 550, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL2, NULL, NULL);
 
                 skillBtn3 = CreateWindow(L"button", L"스킬3", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                    (myClientRect.right - 550), 600, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL3, NULL, NULL);
+                    (myClientRect.right - 550), 550, 120, 100, hWnd, (HMENU)IDC_BTN_SKILL3, NULL, NULL);
 
                 ShowWindow(skillBtn1, SW_HIDE);
                 ShowWindow(skillBtn2, SW_HIDE);
@@ -909,73 +921,102 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
                 break;
             case IDC_BTN_SKILL1: {
-                if (whoTurn == 1 && mainSkillSet == 1) {
-                    flagCritical = 0;
-                    myTempAtkBuf += 4;
-                    whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
-                    flagTurn = 0;
-                }
-                else if (whoTurn == 1 && mainSkillSet == 2) {
-                    flagCritical = 0;
-                    if (myMainCharacter->getCurrentHealth() > 10) {
-                        myTempFastBuf += 5;
-                        myMainCharacter->setCurrentHealth(myMainCharacter->ImRealHit(10));
+                //마나 확인(2)
+                if (myMainCharacter->getCurrentMana() >= 2) {
+                    myMainCharacter->setCurrentMana(myMainCharacter->getCurrentMana() - 2);
+                    if (whoTurn == 1 && mainSkillSet == 1) {
+                        flagCritical = 0;
+                        myTempAtkBuf += 4;
                         whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
-                        InvalidateRect(hWnd, &warArea, TRUE);
-                        UpdateWindow(hWnd);  //윈도우 업데이트로 인게임 플레이어(캐릭터 위) 체력 최신화
+                        flagTurn = 0;
                     }
-                    else {
-                        MessageBox(hWnd, L"체력이 부족하여 스킬사용이 불가능합니다.\n아드레날린은 체력을 10소모합니다.", L"사용불가", MB_OK);
+                    else if (whoTurn == 1 && mainSkillSet == 2) {
+                        flagCritical = 0;
+                        if (myMainCharacter->getCurrentHealth() > 5) {
+                            myTempFastBuf += 5;
+                            myMainCharacter->setCurrentHealth(myMainCharacter->ImRealHit(5));
+                            whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
+                            InvalidateRect(hWnd, &warArea, TRUE);
+                            UpdateWindow(hWnd);  //윈도우 업데이트로 인게임 플레이어(캐릭터 위) 체력 최신화
+                        }
+                        else {
+                            MessageBox(hWnd, L"체력이 부족하여 스킬사용이 불가능합니다.\n아드레날린은 체력을 5소모합니다.", L"사용불가", MB_OK);
+                        }
+                        flagTurn = 0;
                     }
-                    flagTurn = 0;
+                    //적 공격
+                    if (whoTurn == 2 && gameStarter == 1) {
+                        hdc = GetDC(hWnd);
+                        AttackButtonClicked(2, hWnd, hdc);
+                        ReleaseDC(hWnd, hdc);
+                    }
+                    //버프로 인한 화면 무효화
+                    InvalidateRect(hWnd, NULL, TRUE);
+                    UpdateWindow(hWnd);
+                    GameUI(hWnd);
                 }
-                //적 공격
-                if (whoTurn == 2 && gameStarter == 1) {
-                    hdc = GetDC(hWnd);
-                    AttackButtonClicked(2, hWnd, hdc);
-                    ReleaseDC(hWnd, hdc);
+                //마나 없음
+                else {
+                    MessageBox(hWnd, L"마나가 부족합니다!", L"사용불가", MB_OK);
                 }
             }
+
                 break;
             case IDC_BTN_SKILL2: {
-                if (whoTurn == 1 && mainSkillSet == 1) {
-                    hdc = GetDC(hWnd);
-                    knightDoubleAttack = TRUE;
-                    AttackButtonClicked(1, hWnd, hdc);
-                    ReleaseDC(hWnd, hdc);
+                //마나 확인(5)
+                if (myMainCharacter->getCurrentMana() >= 5) {
+                    myMainCharacter->setCurrentMana(myMainCharacter->getCurrentMana() - 5);
+                    if (whoTurn == 1 && mainSkillSet == 1) {
+                        hdc = GetDC(hWnd);
+                        knightDoubleAttack = TRUE;
+                        AttackButtonClicked(1, hWnd, hdc);
+                        ReleaseDC(hWnd, hdc);
+                    }
+                    else if (whoTurn == 1 && mainSkillSet == 2) {
+                        hdc = GetDC(hWnd);
+                        assassinSkillTwo = TRUE;
+                        AttackButtonClicked(1, hWnd, hdc);
+                        ReleaseDC(hWnd, hdc);
+                    }
+                    //적 공격
+                    if (whoTurn == 2 && gameStarter == 1) {
+                        hdc = GetDC(hWnd);
+                        AttackButtonClicked(2, hWnd, hdc);
+                        ReleaseDC(hWnd, hdc);
+                    }
                 }
-                else if (whoTurn == 1 && mainSkillSet == 2) {
-                    hdc = GetDC(hWnd);
-                    assassinSkillTwo = TRUE;
-                    AttackButtonClicked(1, hWnd, hdc);
-                    ReleaseDC(hWnd, hdc);
-                }
-                //적 공격
-                if (whoTurn == 2 && gameStarter == 1) {
-                    hdc = GetDC(hWnd);
-                    AttackButtonClicked(2, hWnd, hdc);
-                    ReleaseDC(hWnd, hdc);
+                //마나 없음
+                else {
+                    MessageBox(hWnd, L"마나가 부족합니다!", L"사용불가", MB_OK);
                 }
             }
                 break;
             case IDC_BTN_SKILL3: {
-                if (whoTurn == 1 && mainSkillSet == 1) {
-                    hdc = GetDC(hWnd);
-                    knightIncisiveAttack = TRUE;
-                    AttackButtonClicked(1, hWnd, hdc);
-                    ReleaseDC(hWnd, hdc);
+                //마나 확인(8)
+                if (myMainCharacter->getCurrentMana() >= 8) {
+                    myMainCharacter->setCurrentMana(myMainCharacter->getCurrentMana() - 8);
+                    if (whoTurn == 1 && mainSkillSet == 1) {
+                        hdc = GetDC(hWnd);
+                        knightIncisiveAttack = TRUE;
+                        AttackButtonClicked(1, hWnd, hdc);
+                        ReleaseDC(hWnd, hdc);
+                    }
+                    else if (whoTurn == 1 && mainSkillSet == 2) {
+                        hdc = GetDC(hWnd);
+                        assassinSkillThree = TRUE;
+                        AttackButtonClicked(1, hWnd, hdc);
+                        ReleaseDC(hWnd, hdc);
+                    }
+                    //적 공격
+                    if (whoTurn == 2 && gameStarter == 1) {
+                        hdc = GetDC(hWnd);
+                        AttackButtonClicked(2, hWnd, hdc);
+                        ReleaseDC(hWnd, hdc);
+                    }
                 }
-                else if (whoTurn == 1 && mainSkillSet == 2) {
-                    hdc = GetDC(hWnd);
-                    assassinSkillThree = TRUE;
-                    AttackButtonClicked(1, hWnd, hdc);
-                    ReleaseDC(hWnd, hdc);
-                }
-                //적 공격
-                if (whoTurn == 2 && gameStarter == 1) {
-                    hdc = GetDC(hWnd);
-                    AttackButtonClicked(2, hWnd, hdc);
-                    ReleaseDC(hWnd, hdc);
+                //마나 없음
+                else {
+                    MessageBox(hWnd, L"마나가 부족합니다!", L"사용불가", MB_OK);
                 }
             }
                 break;
@@ -1052,7 +1093,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
     case WM_PAINT:
         {
-            
             PAINTSTRUCT ps;
             hdc = BeginPaint(hWnd, &ps);
 
@@ -1234,6 +1274,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 SelectObject(MemDC, oldBitmap);
                 DeleteObject(myBitmap);
                 DeleteDC(MemDC);
+                //스킬찍으면 마나 몇 까이는지 알려주기
+                WCHAR gameManaText[32];
+                if (skill_1_text == TRUE) {
+                    wsprintfW(gameManaText, L"마나 소모 : 2");
+                    TextOut(hdc, (myClientRect.right - 850), 650, gameManaText, lstrlenW(gameManaText));
+                }
+                if (skill_2_text == TRUE) {
+                    wsprintfW(gameManaText, L"마나 소모 : 5");
+                    TextOut(hdc, (myClientRect.right - 700), 650, gameManaText, lstrlenW(gameManaText));
+                }
+                if (skill_3_text == TRUE) {
+                    wsprintfW(gameManaText, L"마나 소모 : 8");
+                    TextOut(hdc, (myClientRect.right - 550), 650, gameManaText, lstrlenW(gameManaText));
+                }
             }
             EndPaint(hWnd, &ps);
         }
@@ -1556,6 +1610,9 @@ void SaveStatPoint(HWND statDlghWnd) {
     tempDlghWnd = GetDlgItem(statDlghWnd, IDC_STATIC_CRIPOINT);
     SetWindowText(tempDlghWnd, eDlgBuf);
     
+    wsprintfW(eDlgBuf, L"%d / cost : %d", engravingStat->manaPoint, engravingStat->costArray[5]);
+    tempDlghWnd = GetDlgItem(statDlghWnd, IDC_STATIC_MANAPOINT);
+    SetWindowText(tempDlghWnd, eDlgBuf);
 }
 
 void SaveSkillPoint(HWND skillDlghWnd) {
@@ -1706,9 +1763,11 @@ void GameUI(HWND hWnd) {
     WCHAR UIText[256] = { 0, };
     HDC hdc = GetDC(hWnd);
     wsprintfW(UIText, L"현재 체력 / 최대 체력 : %d / %d ", myMainCharacter->getCurrentHealth(), myMainCharacter->getHealth());
-    TextOut(hdc, 5, 5, UIText, lstrlenW(UIText));
+    TextOut(hdc, 15, 5, UIText, lstrlenW(UIText));
+    wsprintfW(UIText, L"현재 마나 / 최대 마나 : %d / %d ", myMainCharacter->getCurrentMana(), myMainCharacter->getMana());
+    TextOut(hdc, 15, 25, UIText, lstrlenW(UIText));
     wsprintfW(UIText, L"공격력 : %d + (%d)   방어력 : %d   돈 : %d",(myMainCharacter->getDamage() + treasureFastFast), myTempAtkBuf, myMainCharacter->getDefence(), gameMoney);
-    TextOut(hdc, 5, 25, UIText, lstrlenW(UIText));
+    TextOut(hdc, 15, 45, UIText, lstrlenW(UIText));
     ReleaseDC(hWnd, hdc);
     ///->안하는 이유 자꾸 paint 불러와서 떠상일때 버그 유발함
 }
@@ -1716,19 +1775,19 @@ void GameUI(HWND hWnd) {
 void GameCharacterUI(HWND hWnd, HDC hdc) {
     WCHAR str[32];
     //내 캐릭 정보창
-    wsprintfW(str, L"체력 : %d", myMainCharacter->getCurrentHealth());
+    wsprintfW(str, L"체력 : %d  /  마나 : %d", myMainCharacter->getCurrentHealth(), myMainCharacter->getCurrentMana());
     TextOut(hdc, myCharacterRect.left, myCharacterRect.bottom - 40, str, lstrlenW(str));
     wsprintfW(str, L"속공 : %d", (myTempFastBuf + myMainCharacter->getFastAttack() + treasureFastFast));
-    TextOut(hdc, myCharacterRect.left + 100, myCharacterRect.bottom - 40, str, lstrlenW(str));
-    wsprintfW(str, L"치명타 : %d", (myMainCharacter->getCritical() + assassinCriticalUp + treasureCritical));
     TextOut(hdc, myCharacterRect.left, myCharacterRect.bottom - 20, str, lstrlenW(str));
+    wsprintfW(str, L"치명타 : %d", (myMainCharacter->getCritical() + assassinCriticalUp + treasureCritical));
+    TextOut(hdc, myCharacterRect.left+100, myCharacterRect.bottom - 20, str, lstrlenW(str));
     if (treasureNumber == 2) {
         wsprintfW(str, L"이자 버프 : %d", treasurePlusAtk);
-        TextOut(hdc, myCharacterRect.left + 100, myCharacterRect.bottom - 20, str, lstrlenW(str));
+        TextOut(hdc, myCharacterRect.left, myCharacterRect.bottom, str, lstrlenW(str));
     }
     if (treasureNumber == 7 && (enemyMainCharacter->getHealth() / 2) >= enemyMainCharacter->getCurrentHealth()) {
         wsprintfW(str, L"사냥의 시간 적용됨");
-        TextOut(hdc, myCharacterRect.left + 100, myCharacterRect.bottom - 20, str, lstrlenW(str));
+        TextOut(hdc, myCharacterRect.left , myCharacterRect.bottom, str, lstrlenW(str));
     }
     //적 캐릭 정보창
     wsprintfW(str, L"체력 : %d", enemyMainCharacter->getCurrentHealth());
@@ -1760,10 +1819,11 @@ int AttackTurn(int myFast, int enemyFast) {
         if (knightPowerForce == TRUE) {
             enemyCharaterFast -= 3;
         }
+        /*
         if (knightBlackOut == TRUE) {
             playCharaterFast -= 2;
         }
-        
+        */
     }
     return winFast;
 }
@@ -1779,6 +1839,11 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         }
         gameMoney = gameMoney + 10 + (enemyRank * 10);
         bankMoney = bankMoney + 10 + (enemyRank * 10);
+        //마나 회복
+        myMainCharacter->setCurrentMana(myMainCharacter->getCurrentMana() + 2);
+        if (myMainCharacter->getCurrentMana() >= myMainCharacter->getMana()) {
+            myMainCharacter->setCurrentMana(myMainCharacter->getMana());
+        }
         //속공 초기화 + 스테이지 버프 초기화
         enemyCharaterFast = 0;
         playCharaterFast = 0;
@@ -1857,6 +1922,7 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
                 knightBlackOut = TRUE;
                 skillPoint--;
                 myMainChaCharacterSkill->KnightSkill(2);
+                myMainCharacter->setFastAttack(-2);
             }
             else if (check == IDOK && skillPoint <= 0) {
                 MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기사", MB_OK);
@@ -1866,6 +1932,7 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
         else if (skillNumber == 3) {
             check = MessageBox(g_hWnd, L"해당 스테이지에서 자신의 공격력이 4증가합니다.", L"신의 가호(액티브)", MB_OKCANCEL);
             if (check == IDOK && skillPoint >= 1) {
+                skill_1_text = TRUE;
                 SetWindowText(skillBtn1, L"신의 가호");
                 ShowWindow(skillBtn1, SW_SHOW);
                 skillPoint--;
@@ -1879,6 +1946,7 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
         else if (skillNumber == 4) {
             check = MessageBox(g_hWnd, L"주사위 *2 + 공격력의 공격을 가합니다.", L"더블 어택(액티브)", MB_OKCANCEL);
             if (check == IDOK && skillPoint >= 1) {
+                skill_2_text = TRUE;
                 SetWindowText(skillBtn2, L"더블 어택");
                 ShowWindow(skillBtn2, SW_SHOW);
                 skillPoint--;
@@ -1893,6 +1961,7 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
         else if (skillNumber == 5) {
             check = MessageBox(g_hWnd, L"주사위 *4 + 공격력의 공격을 가합니다.", L"예리한 일격(액티브)", MB_OKCANCEL);
             if (check == IDOK && skillPoint >= 1) {
+                skill_3_text = TRUE;
                 SetWindowText(skillBtn3, L"예리한 일격");
                 ShowWindow(skillBtn3, SW_SHOW);
                 skillPoint--;
@@ -1943,8 +2012,9 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
         }
         //도적 스킬 3
         else if (skillNumber == 3) {
-            check = MessageBox(g_hWnd, L"현재 체력의 10이 감소하지만 현재 스테이지에서 속공이 5증가합니다.", L"아드레날린(액티브)", MB_OKCANCEL);
+            check = MessageBox(g_hWnd, L"현재 체력의 5이 감소하지만 현재 스테이지에서 속공이 5증가합니다.", L"아드레날린(액티브)", MB_OKCANCEL);
             if (check == IDOK && skillPoint >= 1) {
+                skill_1_text = TRUE;
                 SetWindowText(skillBtn1, L"아드레날린");
                 ShowWindow(skillBtn1, SW_SHOW);
                 skillPoint--;
@@ -1958,6 +2028,7 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
         else if (skillNumber == 4) {
             check = MessageBox(g_hWnd, L"2의 추가공격력을 얻고 해당 공격의 치명타 피해량이 2배 -> 3배로 증가합니다.", L"백어택(액티브)", MB_OKCANCEL);
             if (check == IDOK && skillPoint >= 1) {
+                skill_2_text = TRUE;
                 SetWindowText(skillBtn2, L"백어택");
                 ShowWindow(skillBtn2, SW_SHOW);
                 skillPoint--;
@@ -1972,6 +2043,7 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
         else if (skillNumber == 5) {
             check = MessageBox(g_hWnd, L"주사위 * (자신의 속공 수치의 / 10) + 공격력의 공격을 가합니다.", L"잔상 공격(액티브)", MB_OKCANCEL);
             if (check == IDOK && skillPoint >= 1) {
+                skill_3_text = TRUE;
                 SetWindowText(skillBtn3, L"잔상 공격");
                 ShowWindow(skillBtn3, SW_SHOW);
                 skillPoint--;
@@ -1982,18 +2054,6 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
             }
         }
     }
-    //나중에 스킬 포인트 제대로 어찌할지 정하고 하기
-    //복붙용이니 나머지는 지움
-    /*
-    if (gameMoney >= engravingStat->costArray[0]) {
-        gameMoney -= engravingStat->costArray[0];
-        engravingStat->UpStrPoint();
-        myMainCharacter->setDamage(1);
-    }
-    else {
-        MessageBox(hDlg, L"돈이 부족합니다!\n스테이지를 진행하며 돈을 획득해주세요", L"더 줘", MB_OK);
-    }
-    */
 }
 
 int CriticalHit(int flagNumber) {

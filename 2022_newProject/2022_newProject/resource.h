@@ -51,7 +51,6 @@
 #define IDB_ENEMYTANKER2                164
 #define IDB_TREASURE_7_1                165
 #define IDB_GUNNER1_IMAGE               166
-#define IDB_ENEMYBLOOD                  167
 #define IDB_ENEMY_IMG_BLOOD             167
 #define IDB_ENEMY_IMG_NORMALATK         168
 #define IDC_BUTTON_STRUP                1000
@@ -84,8 +83,12 @@
 #define IDC_BUTTON_ASSASSIN_2_1         1015
 #define IDC_STATIC_MONEYPOINT           1015
 #define IDC_BUTTON_ASSASSIN_2_2         1016
+#define IDC_STATIC_MANATEXT             1016
 #define IDC_BUTTON_ASSASSIN_2_3         1017
+#define IDC_BUTTON_MANAUP               1017
 #define IDC_STATIC_GROUP_2              1018
+#define IDC_STATIC_CRIPOINT2            1018
+#define IDC_STATIC_MANAPOINT            1018
 #define IDC_STATIC_SKILLHELPTEXT        1020
 #define IDC_STATIC_SKILLPOINT           1022
 #define IDC_STATIC_WANDERERTEXT         1023

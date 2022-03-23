@@ -4,6 +4,9 @@
 MyCharacter::MyCharacter(){
 	maxHealth = 80;
 	currentHealth = maxHealth;
+	maxMana = 10;
+	currentMana = maxMana;
+
 	damage = 4;
 	defence = 1;
 	fastAttack = 15;

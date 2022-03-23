@@ -8,7 +8,8 @@ public:
 	int hpPoint;
 	int fastPoint;
 	int criPoint;
-	int costArray[5];
+	int manaPoint;
+	int costArray[6];
 
 public:
 	Engraving();
@@ -17,6 +18,7 @@ public:
 	void UpHpPoint();
 	void UpFastPoint();
 	void UpCriPoint();
+	void UpManaPoint();
 	void Reset();
 
 };

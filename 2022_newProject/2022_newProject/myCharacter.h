@@ -8,6 +8,9 @@ class MyCharacter {
 private:
 	int maxHealth;
 	int currentHealth;
+	int maxMana;
+	int currentMana;
+
 	int damage;
 	int defence;
 	int fastAttack;
@@ -26,6 +29,13 @@ public:
 	int getCurrentHealth() {
 		return currentHealth;
 	}
+	int getMana() {
+		return maxMana;
+	}
+	int getCurrentMana() {
+		return currentMana;
+	}
+
 	int getDamage() {
 		return damage;
 	}
@@ -45,6 +55,14 @@ public:
 	void setCurrentHealth(int current) {
 		currentHealth = current;
 	}
+	void setMaxMana(int current) {
+		maxMana = current;
+	}
+	void setCurrentMana(int current) {
+		currentMana = current;
+	}
+
+	//포인트 찍었을때
 	void setDamage(int strStat) {
 		damage += strStat;
 	}
@@ -54,6 +72,10 @@ public:
 	void setHealth(int dpStat) {
 		maxHealth += dpStat;
 		currentHealth += dpStat;
+	}
+	void setMana(int dpStat) {
+		maxMana += dpStat;
+		currentMana += dpStat;
 	}
 	void setFastAttack(int dpStat) {
 		fastAttack += dpStat;
