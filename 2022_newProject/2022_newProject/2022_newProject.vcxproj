@@ -193,6 +193,7 @@
     <Image Include="JobImage\treasure\Treasure_05_1.bmp" />
     <Image Include="JobImage\treasure\Treasure_06_1.bmp" />
     <Image Include="JobImage\treasure\Treasure_07_1.bmp" />
+    <Image Include="JobImage\treasure\Treasure_08_1.bmp" />
     <Image Include="JobImage\Wanderer.bmp" />
     <Image Include="small.ico" />
   </ItemGroup>

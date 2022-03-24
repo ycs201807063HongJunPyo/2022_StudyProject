@@ -51,6 +51,7 @@ int treasurePlusAtk = 0;  // 각인 이자 변수
 BOOL treasurePlusAtkBool = FALSE;
 int treasureCritical = 0;  // 각인 약점 공략
 int treasureFastFast = 0;  //각인 속전속결
+int treasureGetMana = 0;  //각인 마나약탈자
 int enemyAtkVar = 0;  //적 공격 이미지(평타, 흡혈 구분 평타1, 흡혈2)
 int bankMoney;  //저축된 금액
 
@@ -99,6 +100,14 @@ BOOL assassinSkillOne = FALSE;  // 약탈꾼
 int assassinCriticalUp = 0;  // 약점 노출 배수용
 BOOL assassinSkillTwo = FALSE;  // 백어택
 BOOL assassinSkillThree = FALSE;  // 잔상 공격
+///기술자
+BOOL techSkillOne = FALSE;  // CQC
+int techRevenge = 0;  // 리벤저 배수용
+BOOL techBotOne = FALSE;  // 공격 봇
+BOOL techBotTwo = FALSE;  // 응급처치 봇
+BOOL techSkillTwo = FALSE;  // 마탄의 사수
+BOOL techSkillFour = FALSE;  // 기계 반란
+
 ///스킬 마나 확인용
 BOOL skill_1_text = FALSE;  //첫번째 스킬 찍었나
 BOOL skill_2_text = FALSE;  //두번째 스킬 찍었나
@@ -477,7 +486,7 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
         }
         //직업 선택
         if (LOWORD(wParam) == IDC_BUTTON_KNIGHT_0_0 && mainSkillSet == 0) {
-            check = MessageBox(hDlg, L"기사 전직\n기사로 전직하여 방어력이 8증가하며 기사 스킬을 배울수있게됩니다.\n다른 직업 스킬은 배울수없게됩니다.\n\n스킬 포인트가 필요합니다.", L"기사", MB_OKCANCEL);
+            check = MessageBox(hDlg, L"기사 전직\n기사는 한방은 약하지만 든든한 방어력으로 적을 처치하는 스타일을 가진 직업입니다.\nN기사로 전직하여 방어력이 8증가하며 기사 스킬을 배울수있게됩니다.\n다른 직업 스킬은 배울수없게됩니다.\n\n스킬 포인트가 필요합니다.", L"기사", MB_OKCANCEL);
             if (check == IDOK && skillPoint >= 1) {
                 skillPoint--;
                 myMainCharacter->setDefence(8);
@@ -500,6 +509,20 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
             }
             else if (check == IDOK && skillPoint <= 0) {
                 MessageBox(hDlg, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
+        else if (LOWORD(wParam) == IDC_BUTTON_TECH_0_0 && mainSkillSet == 0) {
+            check = MessageBox(hDlg, L"기술자 전직\n기술자는 봇을 설치해 적과 싸우며 강한 화력으로 적을 처치하는 스타일을 가진 직업입니다.\n속공 수치가 1, 치명타 수치가 3증가합니다.\n다른 직업 스킬은 배울수없게됩니다.\n\n스킬 포인트가 필요합니다.", L"기술자", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                skillPoint--;
+                myMainCharacter->setFastAttack(1);
+                myMainCharacter->setCritical(3);
+                mainSkillSet = myMainChaCharacterSkill->TechnicianSkillSelect();
+                UpdateWindow(hWndUi);
+                InvalidateRect(hWndUi, &warArea, TRUE);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(hDlg, L"스킬포인트가 필요합니다!", L"기술자", MB_OK);
             }
         }
         //기사이면
@@ -658,6 +681,87 @@ BOOL CALLBACK SkillDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lPara
                 }
             }
         }
+        //기술자면
+        else if (mainSkillSet == 3) {
+            //기술자 스킬 0
+            if (LOWORD(wParam) == IDC_BUTTON_TECH_1_1) {
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(0);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 0);
+
+                }
+                else {
+                    wsprintfW(skillText, L"공격력이 6감소하지만 일반 공격시 2대 공격합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //기술자 스킬 1
+            else if (LOWORD(wParam) == IDC_BUTTON_TECH_1_2) {
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(1);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 1);
+
+                }
+                else {
+                    wsprintfW(skillText, L"공격시 추가로 힘 스탯 / 2 만큼 피해를 줍니다.\nCQC 미적용");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //기술자 스킬 2
+            else if (LOWORD(wParam) == IDC_BUTTON_TECH_1_3) {
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(2);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 2);
+
+                }
+                else {
+                    wsprintfW(skillText, L"체력이 20미만인 상태로 다음 스테이지로 넘어가면 체력 10회복합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //기술자 스킬 3
+            else if (LOWORD(wParam) == IDC_BUTTON_TECH_2_1) {
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(3);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 3);
+
+                }
+                else {
+                    wsprintfW(skillText, L"다음 공격시 적의 방어력을 무시하는 자신의 공격력-2의 추가 공격을 가합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //기술자 스킬 4
+            else if (LOWORD(wParam) == IDC_BUTTON_TECH_2_2) {
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(4);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 4);
+
+                }
+                else {
+                    wsprintfW(skillText, L"해당 스테이지에서 받는 피해가 1감소하고\n피해를 받으면 상대방에게 방어력에 영향을 받는 피해량 2를 줍니다.\n중첩");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+            //기술자 스킬 5
+            else if (LOWORD(wParam) == IDC_BUTTON_TECH_2_3) {
+                skillCheck = myMainChaCharacterSkill->GetPlayerSelectSkill(5);
+                if (skillCheck == 0) {
+                    GetSkill(hDlg, 5);
+
+                }
+                else {
+                    wsprintfW(skillText, L"(주사위 + 설치된 장비 개수)* (공격력 - 6)의 공격을 가합니다.");
+                    tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLHELPTEXT);
+                    SetWindowText(tempDlghWnd, skillText);
+                }
+            }
+        }
         SaveSkillPoint(hDlg);
         wsprintfW(skillPointText, L"보유중인 스킬 포인트 : %d", skillPoint);
         tempDlghWnd = GetDlgItem(hDlg, IDC_STATIC_SKILLPOINT);
@@ -685,6 +789,7 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
     -5 속전속결 : 공격력이 2, 속공 수치가 2증가합니다.
     -6 약점 공략 : 치명타 확률이 5%증가합니다.
     -7 사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 20% 증가합니다.
+    -8 마나 약탈자 : 기본 공격시 마나를 2회복합니다.
     */
     HDC MemDC;
     HBITMAP myBitmap, oldBitmap;
@@ -719,7 +824,8 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
                 gameMoney -= 30;
                 treasureFastFast = 0;  // 속전속결 버프 초기화
                 treasureCritical = 0;  // 약점 공략 버프 초기화
-                treasureNumber = (rand() % 7) + 1;
+                treasureGetMana = 0;  // 마나 약탈자 버프 초기화
+                treasureNumber = (rand() % 8) + 1;
                 SaveTreasurePoint(hDlg);
             }
             else {
@@ -762,6 +868,9 @@ BOOL CALLBACK TreasureDlgProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lP
         else if (treasureNumber == 7) {
             myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_7_1));
         }
+        else if (treasureNumber == 8) {
+            myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_TREASURE_8_1));
+        }
         oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
         BitBlt(hdc, (treasureRect.left) + 20, (treasureRect.top + 30), 60, 100, MemDC, 0, 0, SRCCOPY);  //비트맵 그려주기
         SelectObject(MemDC, oldBitmap);
@@ -792,7 +901,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     //떠상 물약
     int enemyModel = gameStage % 5;
-    int getSkill = gameStage % 10;
+    int getSkillStage = gameStage % 10;
     int check;
 
     switch (message)
@@ -909,6 +1018,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //플레이어 평타
                 if (whoTurn == 1) {
                     hdc = GetDC(hWnd);
+                    if (treasureGetMana == 1) {
+                        //마나 회복
+                        myMainCharacter->setCurrentMana(myMainCharacter->getCurrentMana() + 2);
+                        if (myMainCharacter->getCurrentMana() >= myMainCharacter->getMana()) {
+                            myMainCharacter->setCurrentMana(myMainCharacter->getMana());
+                        }
+                    }
                     AttackButtonClicked(1, hWnd, hdc);
                     ReleaseDC(hWnd, hdc);
                 }
@@ -942,6 +1058,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         else {
                             MessageBox(hWnd, L"체력이 부족하여 스킬사용이 불가능합니다.\n아드레날린은 체력을 5소모합니다.", L"사용불가", MB_OK);
                         }
+                        flagTurn = 0;
+                    }
+                    else if (whoTurn == 1 && mainSkillSet == 3) {
+                        flagCritical = 0;
+                        techSkillTwo = TRUE;
+                        whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
                         flagTurn = 0;
                     }
                     //적 공격
@@ -978,12 +1100,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         AttackButtonClicked(1, hWnd, hdc);
                         ReleaseDC(hWnd, hdc);
                     }
+                    else if (whoTurn == 1 && mainSkillSet == 3) {
+                        flagCritical = 0;
+                        techRevenge++;
+                        whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
+                        flagTurn = 0;
+                    }
                     //적 공격
                     if (whoTurn == 2 && gameStarter == 1) {
                         hdc = GetDC(hWnd);
                         AttackButtonClicked(2, hWnd, hdc);
                         ReleaseDC(hWnd, hdc);
                     }
+                    //버프로 인한 화면 무효화
+                    InvalidateRect(hWnd, NULL, TRUE);
+                    UpdateWindow(hWnd);
+                    GameUI(hWnd);
                 }
                 //마나 없음
                 else {
@@ -1006,6 +1138,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         assassinSkillThree = TRUE;
                         AttackButtonClicked(1, hWnd, hdc);
                         ReleaseDC(hWnd, hdc);
+                    }
+                    else if (whoTurn == 1 && mainSkillSet == 3) {
+                        flagCritical = 0;
+                        techSkillFour = TRUE;
+                        whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
+                        flagTurn = 0;
                     }
                     //적 공격
                     if (whoTurn == 2 && gameStarter == 1) {
@@ -1190,6 +1328,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 else if (mainSkillSet == 2) {
                     myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_ASSASSIN1_IMAGE));
                 }
+                //기술자 이미지 보여주기
+                else if (mainSkillSet == 3) {
+                    myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_GUNNER1_IMAGE));
+                }
                 //기본 이미지
                 else{
                     myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_NOOBIE_IMAGE));
@@ -1200,12 +1342,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject(myBitmap);
                 DeleteDC(MemDC);
 
+                //봇 이미지 임시
+                ///전투 봇
+                if (techBotOne == TRUE) {
+                    Rectangle(hdc, myCharacterRect.left + 250, myCharacterRect.top + 70, myCharacterRect.left + 300, myCharacterRect.top+100);
+                }
+                //치료 봇
+                if (techBotTwo == TRUE) {
+                    Rectangle(hdc, myCharacterRect.left + 120, myCharacterRect.top -20, myCharacterRect.left + 200, myCharacterRect.top + 10);
+                }
+
+
+
                 //떠상 물약
                 enemyModel = gameStage % 5;
-                getSkill = gameStage % 10;
+                getSkillStage = gameStage % 10;
                 if (enemyModel == 0) {
                     enemyRank++;
-                    if (getSkill == 0) {
+                    if (getSkillStage == 0) {
                         MemDC = CreateCompatibleDC(hdc);
                         myBitmap = LoadBitmap(hInst, MAKEINTATOM(IDB_BITSKILLPOINT));
                         oldBitmap = (HBITMAP)SelectObject(MemDC, myBitmap);
@@ -1351,6 +1505,7 @@ void ResetGameStater(HWND rs_hWnd) {
     treasurePlusAtkBool = FALSE; //이자 초기화2
     treasureCritical = 0;  // 약점 공략 초기화
     treasureFastFast = 0;  // 속전속결 초기화
+    treasureGetMana = 0;  //마나 약탈자 초기화
     enemyAtkVar = 0;  //적 공격 이미지(평타, 흡혈 구분 평타1, 흡혈2)
     bankMoney;  //저축된 금액
 
@@ -1387,6 +1542,11 @@ void ResetGameStater(HWND rs_hWnd) {
     assassinCriticalUp = 0;  // 약점 노출 배수용
     assassinSkillTwo = FALSE;  // 백어택
     assassinSkillThree = FALSE;  // 잔상 공격
+    /// 기술자
+    techSkillOne = FALSE;  // CQC
+    techRevenge = 0;  // 리벤저 배수용
+    techBotOne = FALSE;  // 공격 봇
+    techBotTwo = FALSE;  // 응급처치 봇
 
     myMainCharacter->Reset();
     enemyMainCharacter->Reset();
@@ -1450,10 +1610,28 @@ void AttackCharaterAni(HWND hWnd, int flag) {
                 atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, myMainCharacter->getDamage());
             }
         }
+        //기술자
+        else if (mainSkillSet == 3) {
+            if (techSkillFour == TRUE) {
+                int botCount = 0;
+                if (techBotOne == TRUE) {
+                    botCount++;
+                }
+                if (techBotTwo == TRUE) {
+                    botCount++;
+                }
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack((diceNumber + botCount), (myMainCharacter->getDamage() - 6));
+                techSkillFour = FALSE;
+            }
+            else {
+                atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, myMainCharacter->getDamage());
+            }
+        }
         else {
             atkDamage = myTempAtkBuf + myMainCharacter->DefaultAttack(diceNumber, myMainCharacter->getDamage());
         }
-
+        
+        
         //각인
         //이자 변수 추가하기(내가 때림)
         if (treasureNumber == 2) {
@@ -1487,8 +1665,22 @@ void AttackCharaterAni(HWND hWnd, int flag) {
         if (treasureNumber == 7 && (enemyMainCharacter->getHealth() /2) >= enemyMainCharacter->getCurrentHealth()) {
             atkDamage = atkDamage * 1.2;
         }
-        enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(atkDamage));
-        
+        //마탄의 사수 적용
+        if (techSkillTwo == TRUE) {
+            enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImRealHit((atkDamage - 2)));
+            techSkillTwo = FALSE;
+        }
+        else {
+            enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(atkDamage));
+        }
+        //CQC 추가타
+        if (techSkillOne == TRUE) {
+            enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(atkDamage));
+        }
+        //공격 봇 추가타
+        if (techBotOne == TRUE) {
+            enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit((engravingStat->strPoint / 2)));
+        }
         
         while (i <= 10) {
             myCharacterRect.left += 5;
@@ -1508,14 +1700,25 @@ void AttackCharaterAni(HWND hWnd, int flag) {
             i++;
         }
     }
-    //죽으면 스킵되게 하기
+    //죽으면 스킵되게 하기 (컴터 공격
     else if (flag == 2 && enemyMainCharacter->getCurrentHealth() > 0) {
-        //기사 전투 태세일때
-        atkDamage = enemyTempAtkBuf + enemyMainCharacter->DefaultAttack(diceNumber, enemyMainCharacter->getDamage());
+        
+        
+        //기술자 리벤저
+        if (techRevenge >= 1) {
+            enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit((techRevenge * 2)));
+            atkDamage = enemyTempAtkBuf + enemyMainCharacter->DefaultAttack(diceNumber, enemyMainCharacter->getDamage()) - techRevenge;
+        }
+        else {
+            //평타 기본
+            atkDamage = enemyTempAtkBuf + enemyMainCharacter->DefaultAttack(diceNumber, enemyMainCharacter->getDamage());
+        }
+        
         //크리티컬 확인
         if (flagCritical == 2) {
             atkDamage = atkDamage * 2;
         }
+        //기사 전투 태세일때
         if (knightWarDefence == TRUE) {
             if (atkDamage < myMainCharacter->getDefence()) {
                 enemyMainCharacter->setCurrentHealth(enemyMainCharacter->ImHit(5));
@@ -1627,6 +1830,11 @@ void SaveSkillPoint(HWND skillDlghWnd) {
         tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_0_0);
         SetWindowText(tempDlghWnd, L"도적(전직)");
     }
+    else if (mainSkillSet == 3) {
+        tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_TECH_0_0);
+        SetWindowText(tempDlghWnd, L"기술자(전직)");
+        
+    }
     //스킬 찍혀있나 확인용
     if (myMainChaCharacterSkill->GetPlayerSelectSkill(0) == 1) {
         if (mainSkillSet == 1) {
@@ -1638,6 +1846,11 @@ void SaveSkillPoint(HWND skillDlghWnd) {
             //습득시 버튼 변경
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_1_1);
             SetWindowText(tempDlghWnd, L"약탈꾼(습득)");
+        }
+        else if (mainSkillSet == 3) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_TECH_1_1);
+            SetWindowText(tempDlghWnd, L"CQC(습득)");
         }
     }
     //
@@ -1653,6 +1866,11 @@ void SaveSkillPoint(HWND skillDlghWnd) {
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_1_2);
             SetWindowText(tempDlghWnd, L"재빠른 손놀림(습득)");
         }
+        else if (mainSkillSet == 3) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_TECH_1_2);
+            SetWindowText(tempDlghWnd, L"공격 봇 설치(습득)");
+        }
     }
     //
     if (myMainChaCharacterSkill->GetPlayerSelectSkill(2) == 1) {
@@ -1665,6 +1883,11 @@ void SaveSkillPoint(HWND skillDlghWnd) {
             //습득시 버튼 변경
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_1_3);
             SetWindowText(tempDlghWnd, L"약점 포착(습득)");
+        }
+        else if (mainSkillSet == 3) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_TECH_1_3);
+            SetWindowText(tempDlghWnd, L"응급처치 봇 설치(습득)");
         }
     }
     //
@@ -1679,6 +1902,11 @@ void SaveSkillPoint(HWND skillDlghWnd) {
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_2_1);
             SetWindowText(tempDlghWnd, L"아드레날린(습득)");
         }
+        else if (mainSkillSet == 3) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_TECH_2_1);
+            SetWindowText(tempDlghWnd, L"마탄의 사수(습득)");
+        }
     }
     if (myMainChaCharacterSkill->GetPlayerSelectSkill(4) == 1) {
         if (mainSkillSet == 1) {
@@ -1691,6 +1919,11 @@ void SaveSkillPoint(HWND skillDlghWnd) {
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_2_2);
             SetWindowText(tempDlghWnd, L"백어택(습득)");
         }
+        else if (mainSkillSet == 3) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_TECH_2_2);
+            SetWindowText(tempDlghWnd, L"리벤저(습득)");
+        }
     }
     if (myMainChaCharacterSkill->GetPlayerSelectSkill(5) == 1) {
         if (mainSkillSet == 1) {
@@ -1702,6 +1935,11 @@ void SaveSkillPoint(HWND skillDlghWnd) {
             //습득시 버튼 변경
             tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_ASSASSIN_2_3);
             SetWindowText(tempDlghWnd, L"잔상 공격(습득)");
+        }
+        else if (mainSkillSet == 3) {
+            //습득시 버튼 변경
+            tempDlghWnd = GetDlgItem(skillDlghWnd, IDC_BUTTON_TECH_2_3);
+            SetWindowText(tempDlghWnd, L"기계 반란(습득)");
         }
     }
 
@@ -1752,6 +1990,12 @@ void SaveTreasurePoint(HWND treaDlghWnd) {
     }
     else if (treasureNumber == 7) {
         wsprintfW(treasureText, L"사냥의 시간 : 체력이 50% 이하인 적 공격시 주는 피해가 20% 증가합니다.");
+        tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
+        SetWindowText(tempDlghWnd, treasureText);
+    }
+    else if (treasureNumber == 8) {
+        wsprintfW(treasureText, L"마나 약탈자 : 기본 공격시 마나를 2회복합니다.");
+        treasureGetMana = 1;
         tempDlghWnd = GetDlgItem(treaDlghWnd, IDC_STATIC_TREASURETEXT);
         SetWindowText(tempDlghWnd, treasureText);
     }
@@ -1844,6 +2088,10 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         if (myMainCharacter->getCurrentMana() >= myMainCharacter->getMana()) {
             myMainCharacter->setCurrentMana(myMainCharacter->getMana());
         }
+        //치료 봇
+        if (techBotTwo == TRUE && myMainCharacter->getCurrentHealth() < 20) {
+            myMainCharacter->setCurrentHealth((myMainCharacter->getCurrentHealth() + 10));
+        }
         //속공 초기화 + 스테이지 버프 초기화
         enemyCharaterFast = 0;
         playCharaterFast = 0;
@@ -1852,6 +2100,7 @@ void HitByCharater(HWND hWnd, HDC hdc) {
         myTempFastBuf = 0;
         enemyTempFastBuf = 0;
         myTempDefenceBuf = 0;
+        techRevenge = 0;
 
         //선공 초기화
         whoTurn = AttackTurn(myMainCharacter->getFastAttack(), enemyMainCharacter->getFastAttack());
@@ -2051,6 +2300,89 @@ void GetSkill(HWND g_hWnd, int skillNumber) {
             }
             else if (check == IDOK && skillPoint <= 0) {
                 MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"도적", MB_OK);
+            }
+        }
+    }
+    //기술자
+    else if (mainSkillSet == 3) {
+        //기술자 스킬 0
+        if (skillNumber == 0) {
+            check = MessageBox(g_hWnd, L"공격력이 6감소하지만 일반 공격시 2대 공격합니다.", L"CQC(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                techSkillOne = TRUE;
+                myMainCharacter->setDamage(-6);
+                skillPoint--;
+                myMainChaCharacterSkill->TechnicianSkill(0);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기술자", MB_OK);
+            }
+        }
+        //기술자 스킬 1
+        else if (skillNumber == 1) {
+            check = MessageBox(g_hWnd, L"공격시 추가로 힘 스탯 / 2 만큼 피해를 줍니다.\nCQC 미적용", L"공격 봇 설치(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                techBotOne = TRUE;
+                skillPoint--;
+                myMainChaCharacterSkill->TechnicianSkill(1);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기술자", MB_OK);
+            }
+        }
+        //기술자 스킬 2
+        else if (skillNumber == 2) {
+            check = MessageBox(g_hWnd, L"체력이 20미만인 상태로 다음 스테이지로 넘어가면 체력 10회복합니다.", L"응급처치 봇 설치(패시브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                techBotTwo = TRUE;
+                skillPoint--;
+                myMainChaCharacterSkill->TechnicianSkill(2);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기술자", MB_OK);
+            }
+        }
+        //기술자 스킬 3
+        else if (skillNumber == 3) {
+            check = MessageBox(g_hWnd, L"다음 공격시 적의 방어력을 무시하는 자신의 공격력-2의 추가 공격을 가합니다.", L"마탄의 사수(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                skill_1_text = TRUE;
+                SetWindowText(skillBtn1, L"마탄의 사수");
+                ShowWindow(skillBtn1, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->TechnicianSkill(3);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기술자", MB_OK);
+            }
+        }
+        //기술자 스킬 4
+        else if (skillNumber == 4) {
+            check = MessageBox(g_hWnd, L"해당 스테이지에서 받는 피해가 1감소하고\n피해를 받으면 상대방에게 방어력에 영향을 받는 피해량 2를 줍니다.\n중첩", L"리벤저(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                skill_2_text = TRUE;
+                SetWindowText(skillBtn2, L"리벤저");
+                ShowWindow(skillBtn2, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->TechnicianSkill(4);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기술자", MB_OK);
+            }
+
+        }
+        //기술자 스킬 5
+        else if (skillNumber == 5) {
+            check = MessageBox(g_hWnd, L"(주사위 + 설치된 장비 개수) * (공격력-6)의 공격을 가합니다.", L"기계 반란(액티브)", MB_OKCANCEL);
+            if (check == IDOK && skillPoint >= 1) {
+                skill_3_text = TRUE;
+                SetWindowText(skillBtn3, L"기계 반란");
+                ShowWindow(skillBtn3, SW_SHOW);
+                skillPoint--;
+                myMainChaCharacterSkill->TechnicianSkill(5);
+            }
+            else if (check == IDOK && skillPoint <= 0) {
+                MessageBox(g_hWnd, L"스킬포인트가 필요합니다!", L"기술자", MB_OK);
             }
         }
     }
